@@ -160,7 +160,7 @@ case "${distributionUrl-}" in
 *) die "distributionUrl is not valid, must match *-bin.zip or maven-mvnd-*.zip, but found '${distributionUrl-}'" ;;
 esac
 
-# prepare tmp dir
+# prepare tmp di
 if TMP_DOWNLOAD_DIR="$(mktemp -d)" && [ -d "$TMP_DOWNLOAD_DIR" ]; then
   clean() { rm -rf -- "$TMP_DOWNLOAD_DIR"; }
   trap clean HUP INT TERM EXIT
@@ -202,7 +202,7 @@ elif set_java_home; then
   javaSource="$TMP_DOWNLOAD_DIR/Downloader.java"
   targetZip="$TMP_DOWNLOAD_DIR/$distributionUrlName"
   cat >"$javaSource" <<-END
-	public class Downloader extends java.net.Authenticator
+	public class Downloader extends java.net.Authenticato
 	{
 	  protected java.net.PasswordAuthentication getPasswordAuthentication()
 	  {
