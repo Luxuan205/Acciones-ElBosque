@@ -132,7 +132,7 @@ services:
       - ./backend/subscription-collection-service:/app
       - m2_cache:/root/.m2
     environment:
-      SPRING_DATASOURCE_URL: ${SUBSCRIPTION_DB_URL}
+      SPRING_DATASOURCE_URL: ${AUDIT_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
       SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
@@ -242,6 +242,11 @@ services:
       - ./backend/audit-compliance-service:/app
       - m2_cache:/root/.m2
     environment:
+      SPRING_DATASOURCE_URL: ${SUBSCRIPTION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       SPRING_ELASTICSEARCH_URIS: ${ELASTIC_URL}
       SPRING_ELASTICSEARCH_USERNAME: ${ELASTIC_USERNAME}
       SPRING_ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD}
