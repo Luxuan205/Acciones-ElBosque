@@ -1,40 +1,185 @@
 services:
-  postgres:
-    image: postgres:16
-    container_name: postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: accionesunbosque
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
- 
-  backend:
+
+  # ─────────────────────────────────────────
+  # SPRING CLOUD
+  # ─────────────────────────────────────────
+
+  eureka-server:
     build:
-      context: ./backend
+      context: ./backend/eureka-server
       dockerfile: Dockerfile.dev
-    container_name: backend
+    container_name: eureka-server
+    restart: unless-stopped
+    ports:
+      - "8761:8761"
+    networks:
+      - acciones-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  api-gateway:
+    build:
+      context: ./backend/api-gateway
+      dockerfile: Dockerfile.dev
+    container_name: api-gateway
     restart: unless-stopped
     ports:
       - "8080:8080"
-    volumes:
-      - ./backend:/app
-      - /root/.m2
-    depends_on:
-      - postgres
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/accionesunbosque
-      SPRING_DATASOURCE_USERNAME: postgres
-      SPRING_DATASOURCE_PASSWORD: postgres
-      SPRING_JPA_HIBERNATE_DDL_AUTO: update
-      SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.postgresql.Driver
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
+
+  # ─────────────────────────────────────────
+  # MICROSERVICIOS
+  # ─────────────────────────────────────────
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile.dev
+    container_name: auth-service
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./backend/auth-service:/app
+      - m2_cache:/root/.m2
+    environment:
+      # Supabase PostgreSQL
+      SPRING_DATASOURCE_URL: ${AUTH_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
     command: >
       sh -c "sed -i 's/\r$//' mvnw &&
-      chmod +x mvnw &&
-      ./mvnw spring-boot:run"
- 
+             chmod +x mvnw &&
+             ./mvnw spring-boot:run"
+
+  portafolio-service:
+    build:
+      context: ./backend/portafolio-service
+      dockerfile: Dockerfile.dev
+    container_name: portafolio-service
+    restart: unless-stopped
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./backend/portafolio-service:/app
+      - m2_cache:/root/.m2
+    environment:
+      # Supabase PostgreSQL
+      SPRING_DATASOURCE_URL: ${PORTAFOLIO_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Upstash Redis
+      SPRING_DATA_REDIS_URL: ${UPSTASH_REDIS_URL}
+      SPRING_DATA_REDIS_SSL_ENABLED: "true"
+      # Elastic Cloud
+      SPRING_ELASTICSEARCH_URIS: ${ELASTIC_URL}
+      SPRING_ELASTICSEARCH_USERNAME: ${ELASTIC_USERNAME}
+      SPRING_ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD}
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
+    command: >
+      sh -c "sed -i 's/\r$//' mvnw &&
+             chmod +x mvnw &&
+             ./mvnw spring-boot:run"
+
+  suscripcion-service:
+    build:
+      context: ./backend/suscripcion-service
+      dockerfile: Dockerfile.dev
+    container_name: suscripcion-service
+    restart: unless-stopped
+    ports:
+      - "8083:8083"
+    volumes:
+      - ./backend/suscripcion-service:/app
+      - m2_cache:/root/.m2
+    environment:
+      # Supabase PostgreSQL
+      SPRING_DATASOURCE_URL: ${SUSCRIPCION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
+      # Stripe
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      # Correo
+      SPRING_MAIL_HOST: smtp.gmail.com
+      SPRING_MAIL_PORT: 587
+      SPRING_MAIL_USERNAME: ${MAIL_USERNAME}
+      SPRING_MAIL_PASSWORD: ${MAIL_PASSWORD}
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
+    command: >
+      sh -c "sed -i 's/\r$//' mvnw &&
+             chmod +x mvnw &&
+             ./mvnw spring-boot:run"
+
+  mercado-service:
+    build:
+      context: ./backend/mercado-service
+      dockerfile: Dockerfile.dev
+    container_name: mercado-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./backend/mercado-service:/app
+      - m2_cache:/root/.m2
+    environment:
+      # Upstash Redis
+      SPRING_DATA_REDIS_URL: ${UPSTASH_REDIS_URL}
+      SPRING_DATA_REDIS_SSL_ENABLED: "true"
+      # Polygon.io
+      POLYGON_API_KEY: ${POLYGON_API_KEY}
+      # Eureka
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
+    command: >
+      sh -c "sed -i 's/\r$//' mvnw &&
+             chmod +x mvnw &&
+             ./mvnw spring-boot:run"
+
+# ─────────────────────────────────────────
+# VOLÚMENES Y RED
+# ─────────────────────────────────────────
+
 volumes:
-  postgres_data:
+  m2_cache:
+
+networks:
+  acciones-network:
+    driver: bridge
