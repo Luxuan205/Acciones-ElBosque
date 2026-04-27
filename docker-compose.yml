@@ -4,22 +4,6 @@ services:
   # SPRING CLOUD
   # ─────────────────────────────────────────
 
-  configuration-service:
-    build:
-      context: ./backend/configuration-service
-      dockerfile: Dockerfile.dev
-    container_name: configuration-service
-    restart: unless-stopped
-    ports:
-      - "8888:8888"
-    networks:
-      - acciones-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 5
-
   eureka-server:
     build:
       context: ./backend/eureka-server
@@ -28,11 +12,6 @@ services:
     restart: unless-stopped
     ports:
       - "8761:8761"
-    environment:
-      CONFIG_SERVER_URL: http://configuration-service:8888
-    depends_on:
-      configuration-service:
-        condition: service_healthy
     networks:
       - acciones-network
     healthcheck:
@@ -51,7 +30,6 @@ services:
       - "8080:8080"
     environment:
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
-      CONFIG_SERVER_URL: http://configuration-service:8888
     depends_on:
       eureka-server:
         condition: service_healthy
@@ -132,12 +110,40 @@ services:
       - ./backend/subscription-collection-service:/app
       - m2_cache:/root/.m2
     environment:
-      SPRING_DATASOURCE_URL: ${AUDIT_DB_URL}
+      SPRING_DATASOURCE_URL: ${SUBSCRIPTION_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
       SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
       SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       STRIPE_API_KEY: ${STRIPE_API_KEY}
+      EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
+    depends_on:
+      eureka-server:
+        condition: service_healthy
+    networks:
+      - acciones-network
+    command: >
+      sh -c "sed -i 's/\r$//' mvnw &&
+             chmod +x mvnw &&
+             ./mvnw spring-boot:run"
+
+  configuration-service:
+    build:
+      context: ./backend/configuration-service
+      dockerfile: Dockerfile.dev
+    container_name: configuration-service
+    restart: unless-stopped
+    ports:
+      - "8084:8084"
+    volumes:
+      - ./backend/configuration-service:/app
+      - m2_cache:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: ${CONFIGURATION_DB_URL}
+      SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
+      SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT: org.hibernate.dialect.PostgreSQLDialect
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eureka-server:8761/eureka
     depends_on:
       eureka-server:
@@ -156,7 +162,7 @@ services:
     container_name: market-data-service
     restart: unless-stopped
     ports:
-      - "8084:8084"
+      - "8085:8085"
     volumes:
       - ./backend/market-data-service:/app
       - m2_cache:/root/.m2
@@ -182,7 +188,7 @@ services:
     container_name: order-service
     restart: unless-stopped
     ports:
-      - "8085:8085"
+      - "8086:8086"
     volumes:
       - ./backend/order-service:/app
       - m2_cache:/root/.m2
@@ -210,7 +216,7 @@ services:
     container_name: mailing-service
     restart: unless-stopped
     ports:
-      - "8086:8086"
+      - "8087:8087"
     volumes:
       - ./backend/mailing-service:/app
       - m2_cache:/root/.m2
@@ -237,12 +243,12 @@ services:
     container_name: audit-compliance-service
     restart: unless-stopped
     ports:
-      - "8087:8087"
+      - "8088:8088"
     volumes:
       - ./backend/audit-compliance-service:/app
       - m2_cache:/root/.m2
     environment:
-      SPRING_DATASOURCE_URL: ${SUBSCRIPTION_DB_URL}
+      SPRING_DATASOURCE_URL: ${AUDIT_DB_URL}
       SPRING_DATASOURCE_USERNAME: ${SUPABASE_USER}
       SPRING_DATASOURCE_PASSWORD: ${SUPABASE_PASSWORD}
       SPRING_JPA_HIBERNATE_DDL_AUTO: validate
