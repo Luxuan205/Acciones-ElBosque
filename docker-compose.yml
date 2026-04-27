@@ -46,7 +46,7 @@ services:
     networks:
       - acciones-network
     command: >
-    sh -c "sed -i 's/\r$//' mvnw &&
+      sh -c "sed -i 's/\r$//' mvnw &&
            chmod +x mvnw &&
            ./mvnw spring-boot:run"
 
