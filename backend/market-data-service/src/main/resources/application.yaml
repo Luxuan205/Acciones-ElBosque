@@ -1,3 +1,43 @@
+server:
+  port: 8085
+  # Necesario para que WebSocket funcione correctamente
+  servlet:
+    context-path: /
+
 spring:
   application:
     name: market-data-service
+
+  data:
+    redis:
+      url: ${SPRING_DATA_REDIS_URL}
+      ssl:
+        enabled: ${SPRING_DATA_REDIS_SSL_ENABLED}
+
+# WebSocket
+websocket:
+  allowed-origins: "*"
+  endpoint: /ws
+  topic: /topic/prices
+
+# Polygon.io
+polygon:
+  api:
+    key: ${POLYGON_API_KEY}
+
+# Intervalo de consulta a Polygon (10 segundos)
+scheduler:
+  intervalo: 10000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE}
+  instance:
+    prefer-ip-address: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

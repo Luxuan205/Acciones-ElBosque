@@ -1,9 +1,9 @@
 server:
-  port: 8087
+  port: 8083
 
 spring:
   application:
-    name: audit-compliance-service
+    name: subscription-collection-service
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}
@@ -18,12 +18,17 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
-        default_schema: audit_db
+        default_schema: subscription_db
 
-  elasticsearch:
-    uris: ${SPRING_ELASTICSEARCH_URIS}
-    username: ${SPRING_ELASTICSEARCH_USERNAME}
-    password: ${SPRING_ELASTICSEARCH_PASSWORD}
+  flyway:
+    enabled: true
+    schemas: subscription_db
+    default-schema: subscription_db
+
+# Stripe
+stripe:
+  api:
+    key: ${STRIPE_API_KEY}
 
 eureka:
   client:
