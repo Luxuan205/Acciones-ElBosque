@@ -1,0 +1,85 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  # ─────────────────────────────────────────
+  # BUILD - Verifica que todos compilan
+  # ─────────────────────────────────────────
+  build:
+    name: Build all microservices
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build eureka-server
+        run: mvn clean package -DskipTests
+        working-directory: backend/eureka-server
+
+      - name: Build gateway
+        run: mvn clean package -DskipTests
+        working-directory: backend/gateway
+
+      - name: Build auth-security-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/auth-security-service
+
+      - name: Build portfolio-query-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/portfolio-query-service
+
+      - name: Build subscription-collection-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/subscription-collection-service
+
+      - name: Build configuration-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/configuration-service
+
+      - name: Build market-data-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/market-data-service
+
+      - name: Build order-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/order-service
+
+      - name: Build mailing-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/mailing-service
+
+      - name: Build audit-compliance-service
+        run: mvn clean package -DskipTests
+        working-directory: backend/audit-compliance-service
+
+  # ─────────────────────────────────────────
+  # DEPLOY - Solo si el build pasa y es push a main
+  # ─────────────────────────────────────────
+  deploy:
+    name: Deploy to Railway
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Railway CLI
+        run: npm install -g @railway/cli
+
+      - name: Deploy with docker-compose
+        run: railway up --detach
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}

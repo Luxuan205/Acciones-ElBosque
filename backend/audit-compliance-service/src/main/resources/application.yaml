@@ -22,8 +22,6 @@ spring:
 
   elasticsearch:
     uris: ${SPRING_ELASTICSEARCH_URIS}
-    username: ${SPRING_ELASTICSEARCH_USERNAME}
-    password: ${SPRING_ELASTICSEARCH_PASSWORD}
 
 eureka:
   client:
