@@ -83,13 +83,6 @@ test(auth): agregar pruebas unitarias al módulo de login
 
 ## Pull Requests
 
-### Reglas
-
-- Nadie aprueba su propio PR. Siempre requiere revisión de otro integrante.
-- El PR debe tener un título descriptivo siguiendo el mismo formato de commits.
-- Referenciar el issue o HU que resuelve: `Closes #12`.
-- El código debe compilar y probarse localmente antes de abrir el PR.
-- Si hay conflictos, el autor del PR los resuelve antes de pedir revisión.
 
 ### Checklist obligatorio en cada PR
 

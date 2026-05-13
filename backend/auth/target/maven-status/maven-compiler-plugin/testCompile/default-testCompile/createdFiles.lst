@@ -1,0 +1,7 @@
+com\accioneselbosque\auth\controller\RegistrationControllerTest.class
+com\accioneselbosque\auth\repository\InvestorRepositoryTest.class
+com\accioneselbosque\auth\service\PasswordChangeServiceTest.class
+com\accioneselbosque\auth\service\RegistrationServiceTest.class
+com\accioneselbosque\auth\TestAuthApplication.class
+com\accioneselbosque\auth\controller\ProfileControllerTest.class
+com\accioneselbosque\auth\service\ProfileServiceTest.class
