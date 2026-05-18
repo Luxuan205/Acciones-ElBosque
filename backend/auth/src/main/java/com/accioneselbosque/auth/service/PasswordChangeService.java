@@ -28,7 +28,7 @@ public class PasswordChangeService {
             throw new InvalidCurrentPasswordException();
         }
 
-        if (!request.newPassword().equals(request.confirmNewPassword())) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
 

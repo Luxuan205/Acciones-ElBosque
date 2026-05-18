@@ -1,0 +1,340 @@
+<div class="dashboard">
+  <div class="container">
+
+    <!-- Welcome Header -->
+    <div class="dashboard__header">
+      <div>
+        <h1>
+          Bienvenido@if (profile()?.fullName) {, {{ profile()!.fullName.split(' ')[0] }}}
+        </h1>
+        <p class="text-muted">
+          Resumen de tu cuenta en Acciones El Bosque
+        </p>
+      </div>
+      <div class="dashboard__header-actions">
+        <a routerLink="/orders/buy" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 2v10M2 7l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Comprar
+        </a>
+        <a routerLink="/orders/sell" class="btn-danger">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M7 12V2M2 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Vender
+        </a>
+      </div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="grid-4 dashboard__cards">
+
+      <!-- Balance Card -->
+      <div class="card">
+        <div class="card__title">Balance Disponible</div>
+        @if (loadingBalance()) {
+          <div class="spinner spinner--sm"></div>
+        } @else {
+          <div class="card__value">
+            {{ formatCurrency(balance()?.availableBalance) }}
+          </div>
+          <div class="card__subtitle">
+            Reservado: {{ formatCurrency(balance()?.reservedForOrders) }}
+          </div>
+        }
+      </div>
+
+      <!-- Portfolio Value -->
+      <div class="card">
+        <div class="card__title">Valor del Portafolio</div>
+        @if (loadingBalance()) {
+          <div class="spinner spinner--sm"></div>
+        } @else {
+          <div class="card__value">
+            {{ formatCurrency(balance()?.totalPortfolioValue) }}
+          </div>
+          <div class="card__subtitle"
+               [class.text-green]="(balance()?.unrealizedGainPercent ?? 0) >= 0"
+               [class.text-red]="(balance()?.unrealizedGainPercent ?? 0) < 0">
+            {{ formatPercent(balance()?.unrealizedGainPercent) }}
+            ({{ formatCurrency(balance()?.unrealizedGain) }})
+          </div>
+        }
+      </div>
+
+      <!-- Active Orders -->
+      <div class="card">
+        <div class="card__title">Órdenes Activas</div>
+        @if (loadingOrders()) {
+          <div class="spinner spinner--sm"></div>
+        } @else {
+          <div class="card__value">{{ activeOrders.length }}</div>
+          <div class="card__subtitle">
+            <a routerLink="/orders/history">Ver historial completo</a>
+          </div>
+        }
+      </div>
+
+      <!-- Subscription -->
+      <div class="card">
+        <div class="card__title">Suscripción</div>
+        @if (loadingProfile()) {
+          <div class="spinner spinner--sm"></div>
+        } @else {
+          <div class="card__value subscription-type"
+               [class.premium]="profile()?.subscriptionType === 'PREMIUM'">
+            {{ profile()?.subscriptionType ?? '—' }}
+          </div>
+          @if (profile()?.subscriptionExpiresAt) {
+            <div class="card__subtitle">
+              Vence: {{ profile()!.subscriptionExpiresAt | date:'dd/MM/yyyy' }}
+            </div>
+          } @else {
+            <div class="card__subtitle">
+              <a routerLink="/subscription">Activar premium</a>
+            </div>
+          }
+        }
+      </div>
+    </div>
+
+    <!-- Charts Row -->
+    @if (!loadingCharts()) {
+      <div class="dashboard__section">
+        <h2 class="dashboard__section-title">Análisis de portafolio</h2>
+
+        <div class="dashboard__charts">
+
+          <!-- Portfolio line chart -->
+          <div class="card">
+            <div class="flex-between mb-2">
+              <div>
+                <div class="card__title card__title--tight">Evolución del portafolio</div>
+                <div class="chart-subtitle">Últimos 30 días (simulado)</div>
+              </div>
+              <div class="pnl-card">
+                <span class="pnl-amount"
+                      [class.positive]="(balance()?.unrealizedGain ?? 0) >= 0"
+                      [class.negative]="(balance()?.unrealizedGain ?? 0) < 0">
+                  {{ formatCurrencyShort(balance()?.unrealizedGain ?? 0) }}
+                </span>
+                <span class="pnl-pct"
+                      [class.positive]="(balance()?.unrealizedGainPercent ?? 0) >= 0"
+                      [class.negative]="(balance()?.unrealizedGainPercent ?? 0) < 0">
+                  ({{ formatPercent(balance()?.unrealizedGainPercent) }})
+                </span>
+              </div>
+            </div>
+
+            <apx-chart
+              [series]="portfolioSeries"
+              [chart]="portfolioChart"
+              [stroke]="portfolioStroke"
+              [fill]="portfolioFill"
+              [xaxis]="portfolioXAxis"
+              [yaxis]="portfolioYAxis"
+              [grid]="portfolioGrid"
+              [tooltip]="portfolioTooltip"
+              [dataLabels]="{ enabled: false }">
+            </apx-chart>
+          </div>
+
+          <!-- Portfolio donut -->
+          <div class="card">
+            <div class="card__title card__title--sm">Distribución del portafolio</div>
+
+            @if ((positions()?.positions?.length ?? 0) === 0) {
+              <div class="empty-state empty-state--chart">
+                <div class="empty-state__icon">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <rect x="4" y="20" width="5" height="8" rx="1" fill="currentColor" opacity="0.35"/>
+                    <rect x="11" y="13" width="5" height="15" rx="1" fill="currentColor" opacity="0.55"/>
+                    <rect x="18" y="7" width="5" height="21" rx="1" fill="currentColor" opacity="0.75"/>
+                    <rect x="25" y="3" width="5" height="25" rx="1" fill="currentColor"/>
+                  </svg>
+                </div>
+                <div class="empty-state__title">Sin posiciones</div>
+              </div>
+            } @else {
+              <apx-chart
+                [series]="donutSeries"
+                [chart]="donutChart"
+                [labels]="donutLabels"
+                [colors]="donutColors"
+                [plotOptions]="donutPlotOptions"
+                [legend]="donutLegend"
+                [dataLabels]="donutDataLabels"
+                [tooltip]="donutTooltip">
+              </apx-chart>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Watchlist Sparklines -->
+    @if (sparklines().length > 0) {
+      <div class="dashboard__section">
+        <div class="flex-between mb-2">
+          <h2 class="dashboard__section-title">Watchlist</h2>
+          <a routerLink="/watchlist" class="section-link">
+            Ver todo
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+        </div>
+        <div class="dashboard__sparklines">
+          @for (row of sparklines(); track row.item.symbol) {
+            <div class="sparkline-card">
+              <div class="flex-between">
+                <div>
+                  <div class="sparkline-card__symbol">{{ row.item.symbol }}</div>
+                  <div class="sparkline-card__name">{{ row.item.name }}</div>
+                </div>
+                <div class="sparkline-card__price-col">
+                  <div class="sparkline-card__price">
+                    {{ formatCurrencyShort(row.detail?.currentPrice ?? 0) }}
+                  </div>
+                  <div class="sparkline-card__change"
+                       [class.positive]="(row.detail?.dayChangePct ?? 0) >= 0"
+                       [class.negative]="(row.detail?.dayChangePct ?? 0) < 0">
+                    {{ formatPercent(row.detail?.dayChangePct) }}
+                  </div>
+                </div>
+              </div>
+
+              <apx-chart
+                [series]="row.chartSeries"
+                [chart]="sparkChart"
+                [stroke]="sparkStroke"
+                [fill]="sparkFill(row)"
+                [tooltip]="sparkTooltip"
+                [colors]="[sparkColor(row)]">
+              </apx-chart>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Quick Actions -->
+    <div class="dashboard__section">
+      <h2 class="dashboard__section-title">Acciones rápidas</h2>
+      <div class="quick-actions">
+
+        <!-- Tier 1 — primary trading actions -->
+        <div class="quick-actions__primary">
+          <a routerLink="/orders/buy" class="qa-trade qa-trade--buy">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M11 3v16M3 11l8-8 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <span class="qa-trade__label">Comprar</span>
+              <span class="qa-trade__sub">Orden a precio de mercado</span>
+            </div>
+          </a>
+          <a routerLink="/orders/sell" class="qa-trade qa-trade--sell">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+              <path d="M11 19V3M3 11l8 8 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <span class="qa-trade__label">Vender</span>
+              <span class="qa-trade__sub">Orden a precio de mercado</span>
+            </div>
+          </a>
+        </div>
+
+        <!-- Tier 2 — secondary nav actions -->
+        <nav class="quick-actions__secondary" aria-label="Más acciones">
+          <a routerLink="/orders/limit" class="qa-nav">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+            <span class="qa-nav__label">Orden límite</span>
+            <span class="qa-nav__desc">Precio máximo o mínimo</span>
+            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a routerLink="/portfolio/positions" class="qa-nav">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <rect x="2" y="9" width="3" height="5" rx="1" fill="currentColor" opacity=".5"/>
+              <rect x="6.5" y="6" width="3" height="8" rx="1" fill="currentColor" opacity=".75"/>
+              <rect x="11" y="3" width="3" height="11" rx="1" fill="currentColor"/>
+            </svg>
+            <span class="qa-nav__label">Mis posiciones</span>
+            <span class="qa-nav__desc">Portafolio de acciones</span>
+            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a routerLink="/orders/history" class="qa-nav">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+              <path d="M8 5.5V8.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="qa-nav__label">Historial</span>
+            <span class="qa-nav__desc">Todas las transacciones</span>
+            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+          <a routerLink="/market" class="qa-nav">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M2 12l3-4 3 2 3.5-5L14 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="qa-nav__label">Ver mercado</span>
+            <span class="qa-nav__desc">Precios en tiempo real</span>
+            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </a>
+        </nav>
+
+      </div>
+    </div>
+
+    <!-- Recent Orders -->
+    @if (!loadingOrders() && activeOrders.length > 0) {
+      <div class="dashboard__section">
+        <div class="flex-between mb-2">
+          <h2 class="dashboard__section-title">Órdenes activas</h2>
+          <a routerLink="/orders/history" class="section-link">Ver todas</a>
+        </div>
+        <div class="card card--flush">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Símbolo</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Estado</th>
+                <th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (order of activeOrders.slice(0, 5); track order.id) {
+                <tr>
+                  <td><strong>{{ order.symbol }}</strong></td>
+                  <td>
+                    <span [class]="order.orderType.includes('BUY') ? 'badge-green' : 'badge-red'">
+                      {{ order.orderType }}
+                    </span>
+                  </td>
+                  <td>{{ order.quantity }}</td>
+                  <td>
+                    <span class="badge-yellow">{{ order.status }}</span>
+                  </td>
+                  <td class="text-muted text-date">
+                    {{ order.createdAt | date:'dd/MM/yy HH:mm' }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

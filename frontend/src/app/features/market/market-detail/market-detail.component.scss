@@ -1,0 +1,34 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.back-link a {
+  text-decoration: none;
+}
+
+.price-hero {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.current-price {
+  font-size: 2.4rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: -0.02em;
+}
+
+.change-badge {
+  font-size: 1.1rem;
+  font-weight: 600;
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+}
+
+.chart-svg {
+  display: block;
+  width: 100%;
+  height: 130px;
+}

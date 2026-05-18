@@ -1,0 +1,59 @@
+<div class="container">
+  <div class="page-header flex-between">
+    <div>
+      <h1 class="card__title">Mis Clientes</h1>
+      <p class="card__subtitle text-muted">Clientes asignados a tu cuenta de broker</p>
+    </div>
+    <a routerLink="/broker/orders" class="btn-primary">Colocar Orden</a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else if (clients().length === 0) {
+    <div class="card card--empty">
+      <p class="text-muted text-lg">No tienes clientes asignados</p>
+      <p class="text-muted mt-2">Contacta con el administrador para que te asigne clientes.</p>
+    </div>
+  } @else {
+    <div class="card mt-3">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre Completo</th>
+            <th>Correo Electrónico</th>
+            <th>Saldo Disponible</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of clients(); track client.clientId) {
+            <tr>
+              <td class="text-muted">{{ client.clientId }}</td>
+              <td><strong>{{ client.fullName }}</strong></td>
+              <td class="text-muted">{{ client.email }}</td>
+              <td class="text-cyan">{{ formatCurrency(client.availableBalance) }}</td>
+              <td>
+                <a
+                  [routerLink]="['/broker/orders']"
+                  [queryParams]="{ clientId: client.clientId }"
+                  class="btn-primary btn-sm"
+                >
+                  Colocar orden
+                </a>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <p class="text-muted text-sm mt-2">
+      Total: {{ clients().length }} cliente(s)
+    </p>
+  }
+</div>

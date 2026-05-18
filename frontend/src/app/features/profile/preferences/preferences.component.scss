@@ -1,0 +1,21 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.preferences-card {
+  max-width: 560px;
+}
+
+.preference-label {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.pref-checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent-green);
+}

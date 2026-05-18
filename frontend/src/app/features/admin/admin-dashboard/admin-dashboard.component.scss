@@ -1,0 +1,52 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.period-btn {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  padding: 0.4rem 1rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+
+  &.active {
+    background: var(--accent-green);
+    color: var(--bg-primary);
+    font-weight: 600;
+  }
+
+  &:hover:not(.active) {
+    border-color: var(--accent-green);
+    color: var(--text-primary);
+  }
+}
+
+.link-card {
+  display: block;
+  padding: 1rem 1.25rem;
+  background: var(--bg-hover);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  text-decoration: none;
+
+  &:hover {
+    border-color: var(--accent-green);
+  }
+
+  &__label {
+    color: var(--accent-green);
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+  }
+
+  &__desc {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+  }
+}

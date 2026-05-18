@@ -1,0 +1,155 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Auditoría del Sistema</h1>
+    <p class="card__subtitle text-muted">Registro de todos los eventos y acciones realizadas en la plataforma</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="card mt-3">
+    <h3 class="card__subtitle mb-3">Filtros de Búsqueda</h3>
+    <div class="filter-grid">
+      <div class="form-group">
+        <label>Tipo de Evento</label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Ej: LOGIN"
+          [ngModel]="filterEventType()"
+          (ngModelChange)="filterEventType.set($event)"
+        />
+      </div>
+      <div class="form-group">
+        <label>ID Inversor</label>
+        <input
+          type="number"
+          class="form-control"
+          placeholder="Ej: 1234"
+          [ngModel]="filterInvestorId()"
+          (ngModelChange)="filterInvestorId.set($event)"
+          min="1"
+        />
+      </div>
+      <div class="form-group">
+        <label>Resultado</label>
+        <select class="form-control" [ngModel]="filterResult()" (ngModelChange)="filterResult.set($event)">
+          <option value="">Todos</option>
+          <option value="SUCCESS">SUCCESS</option>
+          <option value="FAILURE">FAILURE</option>
+          <option value="ERROR">ERROR</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Desde</label>
+        <input
+          type="date"
+          class="form-control"
+          [ngModel]="filterFrom()"
+          (ngModelChange)="filterFrom.set($event)"
+        />
+      </div>
+      <div class="form-group">
+        <label>Hasta</label>
+        <input
+          type="date"
+          class="form-control"
+          [ngModel]="filterTo()"
+          (ngModelChange)="filterTo.set($event)"
+        />
+      </div>
+      <div class="form-group flex gap-1 items-end">
+        <button class="btn-primary flex-1" (click)="search()">Buscar</button>
+        <button class="btn-outline btn-sm" (click)="clearFilters()">Limpiar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results -->
+  @if (loading()) {
+    <div class="loading-container mt-3"><div class="spinner"></div></div>
+  } @else if (loadError()) {
+    <div class="alert alert-danger mt-3">{{ loadError() }}</div>
+  } @else {
+    <div class="card mt-3">
+      <div class="flex-between mb-2">
+        <p class="text-muted text-sm">
+          {{ totalElements() }} evento(s) encontrado(s) — Página {{ currentPage() + 1 }} de {{ totalPages() }}
+        </p>
+      </div>
+
+      @if (events().length === 0) {
+        <div class="text-center" style="padding: 3rem;">
+          <p class="text-muted">No se encontraron eventos con los filtros aplicados.</p>
+        </div>
+      } @else {
+        <div class="overflow-x">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Tipo de Evento</th>
+                <th>ID Inversor</th>
+                <th>Descripción</th>
+                <th>Resultado</th>
+                <th>Fecha y Hora</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (event of events(); track event.id) {
+                <tr>
+                  <td class="text-muted">#{{ event.id }}</td>
+                  <td><strong>{{ event.eventType }}</strong></td>
+                  <td class="text-muted">{{ event.investorId ?? '—' }}</td>
+                  <td class="text-truncate" style="max-width: 300px;" [title]="event.description">
+                    {{ event.description }}
+                  </td>
+                  <td>
+                    @switch (event.result) {
+                      @case ('SUCCESS') { <span class="badge-green">{{ event.result }}</span> }
+                      @case ('FAILURE') { <span class="badge-red">{{ event.result }}</span> }
+                      @case ('ERROR') { <span class="badge-orange">{{ event.result }}</span> }
+                      @default { <span>{{ event.result }}</span> }
+                    }
+                  </td>
+                  <td class="text-muted text-date text-nowrap">
+                    {{ formatDate(event.occurredAt) }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination mt-3">
+        <button
+          class="btn-outline btn-sm"
+          [disabled]="currentPage() === 0"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Anterior
+        </button>
+        @for (page of pageNumbers(); track page) {
+          <button
+            class="btn-outline btn-sm"
+            [class.btn-primary]="page === currentPage()"
+            (click)="goToPage(page)"
+          >
+            {{ page + 1 }}
+          </button>
+        }
+        <button
+          class="btn-outline btn-sm"
+          [disabled]="currentPage() >= totalPages() - 1"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          Siguiente
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    }
+  }
+</div>

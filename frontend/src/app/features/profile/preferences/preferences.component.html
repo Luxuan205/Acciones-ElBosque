@@ -1,0 +1,64 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Preferencias</h1>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    <div class="card preferences-card">
+      <form [formGroup]="form" (ngSubmit)="save()">
+
+        <div class="form-group">
+          <label class="text-secondary preference-label">
+            <input
+              type="checkbox"
+              formControlName="emailNotifications"
+              class="pref-checkbox"
+            />
+            Notificaciones por correo electrónico
+          </label>
+        </div>
+
+        <div class="form-group mt-2">
+          <label class="text-secondary">Idioma</label>
+          <select formControlName="language" class="form-control">
+            <option value="es">Español</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+
+        <div class="form-group mt-2">
+          <label class="text-secondary">Zona horaria</label>
+          <input
+            type="text"
+            formControlName="timezone"
+            class="form-control"
+            placeholder="America/Bogota"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary mt-3"
+          [disabled]="saving()"
+        >
+          @if (saving()) {
+            <span class="spinner spinner--sm"></span>
+          } @else {
+            Guardar Preferencias
+          }
+        </button>
+      </form>
+    </div>
+  }
+</div>

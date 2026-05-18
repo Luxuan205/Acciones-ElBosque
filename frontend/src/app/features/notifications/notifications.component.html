@@ -1,0 +1,60 @@
+<div class="container">
+  <div class="page-header flex-between">
+    <div>
+      <h1 class="card__title">
+        Notificaciones
+        @if (unreadCount > 0) {
+          <span class="badge-cyan ms-2">{{ unreadCount }}</span>
+        }
+      </h1>
+    </div>
+    <div class="filter-tabs">
+      <button
+        class="btn-outline btn-sm"
+        [class.active-tab]="activeFilter() === 'ALL'"
+        (click)="setFilter('ALL')"
+      >TODOS</button>
+      <button
+        class="btn-outline btn-sm"
+        [class.active-tab]="activeFilter() === 'UNREAD'"
+        (click)="setFilter('UNREAD')"
+      >NO LEÍDOS</button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    @if (filtered.length === 0) {
+      <div class="card empty-state">
+        <p class="text-muted">No tienes notificaciones</p>
+      </div>
+    } @else {
+      <div class="notification-list">
+        @for (n of filtered; track n.id) {
+          <div class="notification-item card" [class.unread]="!n.read">
+            <div class="notification-header flex-between">
+              <div class="flex-start">
+                <span class="badge-cyan notification-type">{{ n.eventType }}</span>
+                <span class="notification-title" [class.text-primary]="!n.read">{{ n.title }}</span>
+              </div>
+              <span class="text-muted notification-date">{{ formatDate(n.createdAt) }}</span>
+            </div>
+            <p class="notification-body text-muted">{{ n.body }}</p>
+            @if (!n.read) {
+              <button class="btn-outline btn-sm mt-2" (click)="markRead(n.id)">
+                Marcar como leído
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

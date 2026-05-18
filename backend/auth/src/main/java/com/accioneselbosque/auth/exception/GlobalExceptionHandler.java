@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+class AuthExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
@@ -74,9 +74,69 @@ public class GlobalExceptionHandler {
                 .body(Map.of("error", "La contraseña actual es incorrecta."));
     }
 
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "INVALID_CREDENTIALS", "message", "Credenciales incorrectas o cuenta no encontrada."));
+    }
+
+    @ExceptionHandler(AccountLockedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountLocked(AccountLockedException ex) {
+        return ResponseEntity.status(423)
+                .body(Map.of("error", "ACCOUNT_LOCKED", "message", "Cuenta bloqueada temporalmente. Intente de nuevo más tarde."));
+    }
+
+    @ExceptionHandler(AccountSuspendedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountSuspended(AccountSuspendedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "ACCOUNT_SUSPENDED", "message", "Tu cuenta ha sido suspendida."));
+    }
+
+    @ExceptionHandler(InvalidOtpException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidOtp(InvalidOtpException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "INVALID_OTP", "message", "Código incorrecto o expirado."));
+    }
+
+    @ExceptionHandler(MfaSessionExpiredException.class)
+    public ResponseEntity<Map<String, String>> handleMfaSessionExpired(MfaSessionExpiredException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", "SESSION_EXPIRED", "message", "Sesión expirada. Por favor inicie sesión nuevamente."));
+    }
+
+    @ExceptionHandler(ResendLimitException.class)
+    public ResponseEntity<Map<String, String>> handleResendLimit(ResendLimitException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .body(Map.of("error", "RESEND_LIMIT", "message", "Demasiadas solicitudes. Espere antes de solicitar otro código."));
+    }
+
+    @ExceptionHandler(ClientNotAssignedException.class)
+    public ResponseEntity<Map<String, String>> handleClientNotAssigned(ClientNotAssignedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Map.of("error", "CLIENT_NOT_ASSIGNED", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException ex) {
         return ResponseEntity.badRequest()
                 .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleUserNotFound(UserNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", "USER_NOT_FOUND", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(LastAdminException.class)
+    public ResponseEntity<Map<String, String>> handleLastAdmin(LastAdminException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "LAST_ADMIN", "message", ex.getMessage()));
+    }
+
+    @ExceptionHandler(AdminConfirmationRequiredException.class)
+    public ResponseEntity<Map<String, String>> handleAdminConfirmation(AdminConfirmationRequiredException ex) {
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(Map.of("error", "CONFIRMATION_REQUIRED", "message", ex.getMessage()));
     }
 }

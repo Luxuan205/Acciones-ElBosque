@@ -1,0 +1,151 @@
+<div class="container">
+  <div class="page-header">
+    <h1>Orden Límite</h1>
+    <a routerLink="/orders/history" class="btn-secondary btn-sm">Ver historial</a>
+  </div>
+
+  <div class="order-form">
+    @if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    }
+
+    @if (success()) {
+      <div class="alert alert-success">{{ success() }}</div>
+    }
+
+    <div class="card">
+      <h2 class="card__title">Nueva Orden Límite</h2>
+
+      <div class="type-selector mb-3">
+        <button
+          type="button"
+          class="btn-sm"
+          [class.btn-primary]="orderType() === 'BUY'"
+          [class.btn-secondary]="orderType() !== 'BUY'"
+          (click)="setOrderType('BUY')"
+        >
+          Compra
+        </button>
+        <button
+          type="button"
+          class="btn-sm"
+          [class.btn-danger]="orderType() === 'SELL'"
+          [class.btn-secondary]="orderType() !== 'SELL'"
+          (click)="setOrderType('SELL')"
+        >
+          Venta
+        </button>
+      </div>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="symbol">Símbolo de la acción</label>
+          <input
+            id="symbol"
+            type="text"
+            formControlName="symbol"
+            class="form-control"
+            placeholder="Ej: AAPL, MSFT, GOOGL"
+            autocomplete="off"
+          />
+          @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
+            <span class="form-error">El símbolo es requerido.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="quantity">Cantidad de acciones</label>
+          <input
+            id="quantity"
+            type="number"
+            formControlName="quantity"
+            class="form-control"
+            min="1"
+          />
+          @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+            <span class="form-error">La cantidad debe ser al menos 1.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="limitPrice">Precio límite (COP)</label>
+          <input
+            id="limitPrice"
+            type="number"
+            formControlName="limitPrice"
+            class="form-control"
+            min="0.01"
+            step="0.01"
+            placeholder="Precio máximo de compra o mínimo de venta"
+          />
+          @if (form.get('limitPrice')?.invalid && form.get('limitPrice')?.touched) {
+            <span class="form-error">El precio límite debe ser mayor a 0.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="expiresAt">Fecha de expiración (opcional)</label>
+          <input
+            id="expiresAt"
+            type="datetime-local"
+            formControlName="expiresAt"
+            class="form-control"
+          />
+        </div>
+
+        <button
+          type="submit"
+          class="btn-block mt-3"
+          [class.btn-primary]="orderType() === 'BUY'"
+          [class.btn-danger]="orderType() === 'SELL'"
+          [disabled]="form.invalid || loading()"
+        >
+          @if (loading()) {
+            <span class="spinner"></span> Procesando...
+          } @else {
+            @if (orderType() === 'BUY') {
+              Colocar orden límite de compra
+            } @else {
+              Colocar orden límite de venta
+            }
+          }
+        </button>
+      </form>
+
+      @if (result()) {
+        <div class="preview-card mt-3">
+          <div class="divider"></div>
+          <h3 class="card__title">Orden creada</h3>
+          <div class="flex-between mt-2">
+            <span class="text-muted">ID</span>
+            <span class="text-cyan">#{{ result()!.id }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Tipo</span>
+            <span>{{ result()!.orderType }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Símbolo</span>
+            <span>{{ result()!.symbol }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Cantidad</span>
+            <span>{{ result()!.quantity }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Precio límite</span>
+            <span>{{ formatCOP(result()!.limitPrice) }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Estado</span>
+            <span class="badge-yellow">{{ result()!.status }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Expira</span>
+            <span>{{ result()!.expiresAt | date:'short' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

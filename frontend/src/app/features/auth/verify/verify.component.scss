@@ -1,0 +1,60 @@
+.auth-page {
+  min-height: calc(100dvh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  background: var(--bg-primary);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 440px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  padding: 2.25rem;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+
+  &__header {
+    text-align: center;
+    margin-bottom: 2rem;
+
+    h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
+    p  { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+  }
+
+  &__footer {
+    margin-top: 1.5rem;
+    text-align: center;
+
+    .btn-block {
+      display: block;
+      width: 100%;
+      text-align: center;
+      padding: 0.75rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--accent-green), #0099cc);
+      color: #0a0e1a;
+      border: none;
+      cursor: pointer;
+      transition: opacity 0.2s;
+      text-decoration: none;
+
+      &:hover { opacity: 0.9; text-decoration: none; }
+    }
+  }
+}
+
+.verify-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+
+  &.success { color: var(--accent-green); }
+  &.error   { color: var(--accent-red); }
+  &.loading { color: var(--accent-green); }
+}

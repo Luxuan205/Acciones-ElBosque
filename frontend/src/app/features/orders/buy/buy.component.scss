@@ -1,0 +1,22 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.order-form {
+  max-width: 520px;
+  margin: 0 auto;
+}
+
+.preview-card {
+  background: rgba(0, 212, 255, 0.04);
+  border: 1px solid rgba(0, 212, 255, 0.15);
+  border-radius: 8px;
+  padding: 1.25rem;
+}
+
+.preview-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}

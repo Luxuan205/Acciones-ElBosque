@@ -1,0 +1,84 @@
+<div class="container mt-3">
+  <div class="page-header flex-between">
+    <h2>Mi Watchlist</h2>
+    <a routerLink="/market" class="btn-outline btn-sm">Explorar Mercado</a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (!loading()) {
+    @if (rows().length === 0) {
+      <div class="empty-state">
+        <p class="text-muted">Tu watchlist está vacía. Agrega acciones desde el mercado.</p>
+        <a routerLink="/market" class="btn-primary mt-2">Ir al Mercado</a>
+      </div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Símbolo</th>
+            <th>Nombre</th>
+            <th>Precio actual</th>
+            <th>Variación %</th>
+            <th>Agregado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.item.symbol) {
+            <tr>
+              <td>
+                <a [routerLink]="['/market', row.item.symbol]" class="symbol-link">
+                  {{ row.item.symbol }}
+                </a>
+              </td>
+              <td>{{ row.item.name }}</td>
+              <td>
+                @if (row.loadError) {
+                  <span class="text-muted">—</span>
+                } @else if (row.detail) {
+                  <span class="text-cyan">{{ row.detail.currentPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+                } @else {
+                  <span class="spinner spinner--sm"></span>
+                }
+              </td>
+              <td>
+                @if (row.detail && !row.loadError) {
+                  <span
+                    [class.badge-green]="row.detail.dayChangePct >= 0"
+                    [class.badge-red]="row.detail.dayChangePct < 0"
+                  >
+                    {{ row.detail.dayChangePct >= 0 ? '+' : '' }}{{ row.detail.dayChangePct | number:'1.2-2' }}%
+                  </span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td class="text-muted">{{ row.item.addedAt | date:'dd/MM/yyyy' }}</td>
+              <td>
+                <div class="flex gap-1">
+                  <a
+                    [routerLink]="['/market', row.item.symbol]"
+                    class="btn-sm btn-outline"
+                  >
+                    Ver
+                  </a>
+                  <button
+                    class="btn-sm btn-danger"
+                    (click)="removeFromWatchlist(row.item.symbol)"
+                  >
+                    Eliminar
+                  </button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

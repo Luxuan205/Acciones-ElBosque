@@ -1,0 +1,70 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.active-tab {
+  border-color: var(--accent-green);
+  color: var(--accent-green);
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.notification-item {
+  &.unread {
+    border-left: 3px solid var(--accent-green);
+    padding-left: 1rem;
+  }
+}
+
+.notification-header {
+  align-items: flex-start;
+  margin-bottom: 0.5rem;
+}
+
+.flex-start {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.notification-type {
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.notification-title {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.notification-body {
+  font-size: 0.875rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.notification-date {
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem;
+}
+
+.ms-2 {
+  margin-left: 0.5rem;
+}

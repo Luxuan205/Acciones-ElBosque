@@ -101,8 +101,8 @@
 **Purpose**: Seguridad, integración completa y validación end-to-end.
 
 - [x] T029 [P] Verificar que `POST /auth/resend-verification` retorna 200 idéntico para email existente y no-existente (anti-enumeración SC de security). Ajustar respuesta si difiere.
-- [ ] T030 Ejecutar todos los flujos del `quickstart.md` manualmente contra el servicio corriendo localmente con MailHog. Registrar resultado (pass/fail) como comentario en el PR.
-- [ ] T031 [P] Ejecutar `./mvnw test -pl backend/auth` y confirmar que todos los tests del módulo pasan. Corregir cualquier fallo antes del merge.
+- [x] T030 Ejecutar todos los flujos del `quickstart.md` manualmente contra el servicio corriendo localmente con MailHog. Registrar resultado (pass/fail) como comentario en el PR.
+- [x] T031 [P] Ejecutar `./mvnw test -pl backend/auth` y confirmar que todos los tests del módulo pasan. Corregir cualquier fallo antes del merge.
 
 ---
 

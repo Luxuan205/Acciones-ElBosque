@@ -1,0 +1,25 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.profile-field {
+  margin-bottom: 1rem;
+
+  .text-muted {
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 0.25rem;
+  }
+}
+
+.profile-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
+}
+
+.text-right {
+  text-align: right;
+}

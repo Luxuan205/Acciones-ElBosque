@@ -1,0 +1,88 @@
+<div class="container mt-3">
+  <div class="page-header flex-between">
+    <h2>Mercado</h2>
+  </div>
+
+  <div class="search-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Buscar por nombre o símbolo..."
+      [formControl]="searchControl"
+    />
+    <select class="sort-select" [formControl]="sortControl">
+      <option value="name_asc">Nombre A→Z</option>
+      <option value="name_desc">Nombre Z→A</option>
+      <option value="dayChangePct_desc">Mayor variación</option>
+      <option value="dayChangePct_asc">Menor variación</option>
+    </select>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error()) {
+    @if (stocks().length === 0) {
+      <div class="alert alert-info">No se encontraron acciones con los criterios actuales.</div>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Símbolo</th>
+            <th>Nombre</th>
+            <th>Precio</th>
+            <th>Variación %</th>
+            <th>Volumen</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (stock of stocks(); track stock.symbol) {
+            <tr class="stock-row">
+              <td>
+                <a [routerLink]="['/market', stock.symbol]" class="symbol-link">
+                  {{ stock.symbol }}
+                </a>
+              </td>
+              <td>
+                <a [routerLink]="['/market', stock.symbol]" class="name-link">
+                  {{ stock.name }}
+                </a>
+              </td>
+              <td class="text-cyan">{{ stock.currentPrice | currency:'USD':'symbol':'1.2-2' }}</td>
+              <td>
+                <span [class]="stock.dayChangePct >= 0 ? 'badge-green' : 'badge-red'">
+                  {{ stock.dayChangePct >= 0 ? '+' : '' }}{{ stock.dayChangePct | number:'1.2-2' }}%
+                </span>
+              </td>
+              <td class="text-muted">{{ stock.volume | number }}</td>
+              <td>
+                <button
+                  class="btn-sm"
+                  [class.btn-outline]="!isWatched(stock.symbol)"
+                  [class.btn-secondary]="isWatched(stock.symbol)"
+                  (click)="toggleWatchlist(stock)"
+                >
+                  @if (isWatched(stock.symbol)) {
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true"><path d="M6.5 1l1.5 3.2 3.5.5-2.5 2.4.6 3.4L6.5 9 3 10.5l.6-3.4L1 4.7l3.5-.5L6.5 1Z"/></svg>
+                    Watchlist
+                  } @else {
+                    <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1l1.5 3.2 3.5.5-2.5 2.4.6 3.4L6.5 9 3 10.5l.6-3.4L1 4.7l3.5-.5L6.5 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+                    Agregar
+                  }
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+  }
+</div>

@@ -1,0 +1,282 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Gestión de Usuarios</h1>
+    <p class="card__subtitle text-muted">Administra cuentas, roles y estados de todos los usuarios</p>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success mt-2 mb-2">{{ successMessage() }}</div>
+  }
+
+  <!-- Filters -->
+  <div class="card mt-3">
+    <div class="filter-row">
+      <div class="form-group">
+        <label>Buscar</label>
+        <input
+          type="text"
+          class="form-control"
+          placeholder="Nombre, email, documento..."
+          [value]="searchQuery()"
+          (input)="onSearchInput($any($event.target).value)"
+        />
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select class="form-control" [value]="statusFilter()" (change)="statusFilter.set($any($event.target).value); onFilterChange()">
+          <option value="">Todos</option>
+          @for (s of statusOptions; track s) {
+            <option [value]="s">{{ s }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Rol</label>
+        <select class="form-control" [value]="roleFilter()" (change)="roleFilter.set($any($event.target).value); onFilterChange()">
+          <option value="">Todos</option>
+          @for (r of roleOptions; track r) {
+            <option [value]="r">{{ r }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table -->
+  @if (loading()) {
+    <div class="loading-container mt-3"><div class="spinner"></div></div>
+  } @else if (listError()) {
+    <div class="alert alert-danger mt-3">{{ listError() }}</div>
+  } @else {
+    <div class="card mt-3">
+      <div class="flex-between mb-2">
+        <p class="text-muted text-sm">
+          {{ totalElements() }} usuario(s) encontrado(s)
+        </p>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Email</th>
+            <th>Estado</th>
+            <th>Rol</th>
+            <th>Suscripción</th>
+            <th>Registrado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users(); track user.id) {
+            <tr>
+              <td>
+                <strong>{{ user.fullName }}</strong>
+                <br />
+                <small class="text-muted">{{ user.documentNumber }}</small>
+              </td>
+              <td class="text-muted">{{ user.email }}</td>
+              <td>
+                @switch (user.accountStatus) {
+                  @case ('ACTIVE') { <span class="badge-green">{{ user.accountStatus }}</span> }
+                  @case ('SUSPENDED') { <span class="badge-red">{{ user.accountStatus }}</span> }
+                  @case ('PENDING') { <span class="badge-yellow">{{ user.accountStatus }}</span> }
+                  @case ('BLOCKED') { <span class="badge-orange">{{ user.accountStatus }}</span> }
+                  @default { <span>{{ user.accountStatus }}</span> }
+                }
+              </td>
+              <td>
+                @switch (user.role) {
+                  @case ('ADMIN') { <span class="badge-cyan">{{ user.role }}</span> }
+                  @case ('BROKER') { <span class="badge-orange">{{ user.role }}</span> }
+                  @default { <span>{{ user.role }}</span> }
+                }
+              </td>
+              <td>
+                <span class="text-muted text-sm">{{ user.subscriptionType }}</span>
+                @if (user.subscriptionExpiry) {
+                  <br /><small class="text-muted">Expira: {{ formatDate(user.subscriptionExpiry) }}</small>
+                }
+              </td>
+              <td class="text-muted text-sm">{{ formatDate(user.createdAt) }}</td>
+              <td>
+                <div class="btn-group">
+                  <button class="btn-outline btn-sm" (click)="openDetailModal(user)">Ver detalle</button>
+                  <button class="btn-secondary btn-sm" (click)="openStatusModal(user)">Cambiar estado</button>
+                  <button class="btn-secondary btn-sm" (click)="openRoleModal(user)">Cambiar rol</button>
+                  <button class="btn-danger btn-sm" (click)="resetPassword(user)">Reset pwd</button>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="text-muted text-center" style="padding: 2rem;">
+                No se encontraron usuarios con los filtros aplicados.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination mt-3">
+        <button class="btn-outline btn-sm" [disabled]="currentPage() === 0" (click)="goToPage(currentPage() - 1)">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Anterior
+        </button>
+        @for (page of pageNumbers(); track page) {
+          <button
+            class="btn-outline btn-sm"
+            [class.btn-primary]="page === currentPage()"
+            (click)="goToPage(page)"
+          >
+            {{ page + 1 }}
+          </button>
+        }
+        <button class="btn-outline btn-sm" [disabled]="currentPage() >= totalPages() - 1" (click)="goToPage(currentPage() + 1)">
+          Siguiente
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M5 3l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+    }
+  }
+</div>
+
+<!-- Detail Modal -->
+@if (showDetailModal()) {
+  <div class="modal-backdrop" (click)="closeDetailModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>Detalle de Usuario</h3>
+        <button class="btn-outline btn-sm icon-btn" (click)="closeDetailModal()" aria-label="Cerrar">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+      </div>
+      @if (loadingDetail()) {
+        <div class="loading-container"><div class="spinner"></div></div>
+      } @else if (selectedUserDetail()) {
+        <div class="modal__body">
+          <p><strong>Nombre:</strong> {{ selectedUserDetail()!.fullName }}</p>
+          <p><strong>Email:</strong> {{ selectedUserDetail()!.email }}</p>
+          <p><strong>Documento:</strong> {{ selectedUserDetail()!.documentNumber }}</p>
+          <p><strong>Estado:</strong> {{ selectedUserDetail()!.accountStatus }}</p>
+          <p><strong>Rol:</strong> {{ selectedUserDetail()!.role }}</p>
+          <p><strong>Suscripción:</strong> {{ selectedUserDetail()!.subscriptionType }}</p>
+          <p><strong>Registrado:</strong> {{ formatDate(selectedUserDetail()!.createdAt) }}</p>
+
+          @if (selectedUserDetail()!.recentActivity.length > 0) {
+            <div class="divider mt-2 mb-2"></div>
+            <h4 class="section-label mb-2">Actividad Reciente</h4>
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Evento</th>
+                  <th>Descripción</th>
+                  <th>Fecha</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (act of selectedUserDetail()!.recentActivity; track act.occurredAt) {
+                  <tr>
+                    <td><span class="badge-cyan">{{ act.eventType }}</span></td>
+                    <td>{{ act.description }}</td>
+                    <td class="text-muted text-date">{{ formatDate(act.occurredAt) }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          }
+        </div>
+      }
+      <div class="modal__footer">
+        <button class="btn-secondary" (click)="closeDetailModal()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Status Change Modal -->
+@if (showStatusModal()) {
+  <div class="modal-backdrop" (click)="closeStatusModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>Cambiar Estado — {{ selectedUser()?.fullName }}</h3>
+        <button class="btn-outline btn-sm icon-btn" (click)="closeStatusModal()" aria-label="Cerrar">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+      </div>
+      <div class="modal__body">
+        @if (statusError()) {
+          <div class="alert alert-danger mb-2">{{ statusError() }}</div>
+        }
+        <div class="form-group">
+          <label>Nuevo Estado</label>
+          <select class="form-control" [value]="newStatus()" (change)="newStatus.set($any($event.target).value)">
+            @for (s of statusOptions; track s) {
+              <option [value]="s">{{ s }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Razón <span class="required-mark">*</span></label>
+          <input type="text" class="form-control" placeholder="Motivo del cambio..." [value]="statusReason()" (input)="statusReason.set($any($event.target).value)" />
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn-secondary" (click)="closeStatusModal()">Cancelar</button>
+        <button class="btn-primary" [disabled]="statusSubmitting()" (click)="submitStatusChange()">
+          @if (statusSubmitting()) { <span class="spinner spinner--sm"></span> } Guardar
+        </button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Role Change Modal -->
+@if (showRoleModal()) {
+  <div class="modal-backdrop" (click)="closeRoleModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>Cambiar Rol — {{ selectedUser()?.fullName }}</h3>
+        <button class="btn-outline btn-sm icon-btn" (click)="closeRoleModal()" aria-label="Cerrar">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          </button>
+      </div>
+      <div class="modal__body">
+        @if (roleError()) {
+          <div class="alert alert-danger mb-2">{{ roleError() }}</div>
+        }
+        <div class="form-group">
+          <label>Nuevo Rol</label>
+          <select class="form-control" [value]="newRole()" (change)="newRole.set($any($event.target).value)">
+            @for (r of roleOptions; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Razón <span class="required-mark">*</span></label>
+          <input type="text" class="form-control" placeholder="Motivo del cambio de rol..." [value]="roleReason()" (input)="roleReason.set($any($event.target).value)" />
+        </div>
+        <div class="form-check">
+          <input
+            type="checkbox"
+            id="roleConfirm"
+            [checked]="roleConfirmed()"
+            (change)="roleConfirmed.set($any($event.target).checked)"
+          />
+          <label for="roleConfirm">
+            Confirmo que entiendo las implicaciones del cambio de rol
+          </label>
+        </div>
+      </div>
+      <div class="modal__footer">
+        <button class="btn-secondary" (click)="closeRoleModal()">Cancelar</button>
+        <button class="btn-danger" [disabled]="roleSubmitting()" (click)="submitRoleChange()">
+          @if (roleSubmitting()) { <span class="spinner spinner--sm"></span> } Cambiar Rol
+        </button>
+      </div>
+    </div>
+  </div>
+}

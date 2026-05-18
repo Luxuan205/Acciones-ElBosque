@@ -1,0 +1,141 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Parámetros del Sistema</h1>
+    <p class="card__subtitle text-muted">Configura y gestiona los parámetros globales de la plataforma</p>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success mt-2 mb-2">{{ successMessage() }}</div>
+  }
+
+  @if (saveError() && editingKey() === null) {
+    <div class="alert alert-danger mt-2 mb-2">{{ saveError() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container mt-3"><div class="spinner"></div></div>
+  } @else if (loadError()) {
+    <div class="alert alert-danger mt-3">{{ loadError() }}</div>
+  } @else {
+    @for (category of categories(); track category) {
+      <div class="card mt-3 category-section">
+        <div class="category-header">{{ category }}</div>
+
+        @for (param of groupedParams()[category]; track param.key) {
+          <div class="param-row">
+            <div>
+              <p class="param-key">{{ param.key }}</p>
+              <p class="text-muted param-desc">{{ param.description }}</p>
+              @if (param.minValue !== undefined || param.maxValue !== undefined) {
+                <p class="text-muted param-range">
+                  Rango: {{ param.minValue ?? '—' }} — {{ param.maxValue ?? '—' }}
+                </p>
+              }
+              <small class="text-muted">Tipo: {{ param.dataType }}</small>
+            </div>
+
+            <div>
+              @if (editingKey() === param.key) {
+                <div class="param-edit">
+                  <input
+                    type="text"
+                    class="form-control"
+                    [ngModel]="editState().value"
+                    (ngModelChange)="updateEditValue($event)"
+                  />
+                  <input
+                    type="text"
+                    class="form-control text-sm"
+                    placeholder="Razón del cambio (opcional)"
+                    [ngModel]="editState().reason"
+                    (ngModelChange)="updateEditReason($event)"
+                  />
+                  @if (saveError()) {
+                    <small class="text-red">{{ saveError() }}</small>
+                  }
+                </div>
+              } @else {
+                <span class="param-value">{{ param.value }}</span>
+              }
+            </div>
+
+            <div class="param-actions">
+              @if (editingKey() === param.key) {
+                <button class="btn-success btn-sm" [disabled]="saving()" (click)="saveEdit()">
+                  @if (saving()) { <span class="spinner spinner--sm"></span> } Guardar
+                </button>
+                <button class="btn-secondary btn-sm" (click)="cancelEdit()">Cancelar</button>
+              } @else {
+                <button class="btn-outline btn-sm" (click)="startEdit(param)" [disabled]="editingKey() !== null">
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M8.5 1.5a1.5 1.5 0 012 2L4 10H2V8L8.5 1.5Z" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  Editar
+                </button>
+                <button class="btn-secondary btn-sm" (click)="revertParam(param.key)" [disabled]="editingKey() !== null">
+                  Revertir
+                </button>
+                <button class="btn-outline btn-sm" (click)="openHistory(param.key)">
+                  Historial
+                </button>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (categories().length === 0) {
+      <div class="card mt-3 card--empty">
+        <p class="text-muted">No hay parámetros configurados.</p>
+      </div>
+    }
+  }
+</div>
+
+<!-- History Modal -->
+@if (showHistoryModal()) {
+  <div class="modal-backdrop" (click)="closeHistory()">
+    <div class="modal modal--wide" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3>Historial — <code class="code-green">{{ historyKey() }}</code></h3>
+        <button class="btn-outline btn-sm icon-btn" (click)="closeHistory()" aria-label="Cerrar">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 2l10 10M12 2L2 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+      @if (loadingHistory()) {
+        <div class="loading-container"><div class="spinner"></div></div>
+      } @else if (history().length === 0) {
+        <div class="text-center" style="padding: 2rem;">
+          <p class="text-muted">No hay historial de cambios para este parámetro.</p>
+        </div>
+      } @else {
+        <div class="modal__body--scroll">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Valor Anterior</th>
+                <th>Nuevo Valor</th>
+                <th>Cambiado por</th>
+                <th>Razón</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (h of history(); track h.id) {
+                <tr>
+                  <td class="text-muted text-date text-nowrap">{{ formatDate(h.changedAt) }}</td>
+                  <td><code class="code-red">{{ h.previousValue }}</code></td>
+                  <td><code class="code-green">{{ h.newValue }}</code></td>
+                  <td>{{ h.changedBy }}</td>
+                  <td class="text-muted text-sm">{{ h.reason ?? '—' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+      <div class="modal__footer">
+        <button class="btn-secondary" (click)="closeHistory()">Cerrar</button>
+      </div>
+    </div>
+  </div>
+}

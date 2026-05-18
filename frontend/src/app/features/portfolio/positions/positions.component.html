@@ -1,0 +1,89 @@
+<div class="container">
+  <div class="page-header">
+    <h1>Mis Posiciones</h1>
+    <p class="text-muted">Acciones que tienes actualmente en tu portafolio</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  } @else if (positionsData()) {
+
+    <!-- Summary header -->
+    <div class="grid-2 mb-3">
+      <div class="card">
+        <div class="card__subtitle">Valor Total del Mercado</div>
+        <div class="card__value text-cyan">{{ formatCOP(positionsData()!.totalValue) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Ganancia No Realizada</div>
+        <div [class]="positionsData()!.unrealizedGain >= 0 ? 'card__value text-green' : 'card__value text-red'">
+          {{ formatGain(positionsData()!.unrealizedGain) }}
+          <span class="card__subtitle card__subtitle--inline">
+            ({{ formatPercent(positionsData()!.unrealizedGainPercent) }})
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Positions table or empty state -->
+    @if (positionsData()!.positions.length === 0) {
+      <div class="card card--empty">
+        <p class="text-muted mb-2">No tienes posiciones abiertas</p>
+        <a routerLink="/market" class="btn-primary">Ir al Mercado</a>
+      </div>
+    } @else {
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Símbolo</th>
+              <th>Nombre</th>
+              <th>Cantidad</th>
+              <th>Precio Prom. Compra</th>
+              <th>Precio Actual</th>
+              <th>Valor de Mercado</th>
+              <th>Ganancia No Realizada</th>
+              <th>% Cambio</th>
+              <th>Acción</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (pos of positionsData()!.positions; track pos.symbol) {
+              <tr>
+                <td>
+                  <a [routerLink]="['/market', pos.symbol]" class="text-cyan">
+                    {{ pos.symbol }}
+                  </a>
+                </td>
+                <td>{{ pos.name }}</td>
+                <td>{{ pos.quantity | number }}</td>
+                <td>{{ formatCOP(pos.avgBuyPrice) }}</td>
+                <td>{{ formatCOP(pos.currentPrice) }}</td>
+                <td>{{ formatCOP(pos.marketValue) }}</td>
+                <td [class]="pos.unrealizedGain >= 0 ? 'text-green' : 'text-red'">
+                  {{ formatGain(pos.unrealizedGain) }}
+                </td>
+                <td [class]="pos.unrealizedGainPercent >= 0 ? 'text-green' : 'text-red'">
+                  {{ formatPercent(pos.unrealizedGainPercent) }}
+                </td>
+                <td>
+                  <a
+                    [routerLink]="['/orders/buy']"
+                    [queryParams]="{ symbol: pos.symbol }"
+                    class="btn-outline btn-sm"
+                  >
+                    Comprar más
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

@@ -1,0 +1,112 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Suscripción</h1>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    @if (status(); as s) {
+    <!-- Current Status -->
+    <div class="card mb-3">
+      <div class="flex-between">
+        <div>
+          <span class="text-muted">Plan actual</span>
+          <div class="mt-2">
+            @if (s.subscriptionType === 'PREMIUM') {
+              <span class="badge-cyan subscription-badge">PREMIUM</span>
+            } @else {
+              <span class="badge-yellow subscription-badge">FREE</span>
+            }
+          </div>
+        </div>
+        <div class="text-right">
+          @if (s.active) {
+            <span class="badge-green">Activa</span>
+          } @else {
+            <span class="badge-red">Inactiva</span>
+          }
+        </div>
+      </div>
+
+      @if (s.subscriptionType === 'PREMIUM') {
+        <div class="grid-2 mt-3">
+          @if (s.expiresAt) {
+            <div class="profile-field">
+              <span class="text-muted">Vence el</span>
+              <p class="card__value">{{ formatDate(s.expiresAt) }}</p>
+            </div>
+          }
+          @if (s.daysRemaining !== undefined) {
+            <div class="profile-field">
+              <span class="text-muted">Días restantes</span>
+              <p class="card__value" [class.text-red]="s.daysRemaining <= 7">
+                {{ s.daysRemaining }} días
+              </p>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Activation Result -->
+    @if (activationResult(); as result) {
+      <div class="alert alert-success">
+        {{ result.message }} — Nuevo vencimiento: {{ formatDate(result.expiresAt) }}
+      </div>
+    }
+
+    <!-- Benefits -->
+    <div class="card mb-3">
+      <h2 class="card__title text-cyan">Beneficios Premium</h2>
+      <ul class="benefits-list mt-2">
+        @for (benefit of benefits; track benefit) {
+          <li class="benefit-item">
+            <svg class="benefit-icon text-green" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M2 7l4 4 6-6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="text-secondary">{{ benefit }}</span>
+          </li>
+        }
+      </ul>
+    </div>
+
+    <!-- Action -->
+    <div class="card">
+      @if (s.subscriptionType === 'FREE' || !s.active) {
+        <h3 class="card__title">Activa tu cuenta Premium</h3>
+        <p class="text-muted mb-3">Accede a todas las funcionalidades avanzadas de la plataforma.</p>
+        <button
+          class="btn-primary"
+          (click)="activate()"
+          [disabled]="activating()"
+        >
+          @if (activating()) {
+            <span class="spinner spinner--sm"></span>
+          } @else {
+            Activar Premium
+          }
+        </button>
+      } @else {
+        <h3 class="card__title">Renovar suscripción</h3>
+        <p class="text-muted mb-3">Extiende tu acceso Premium por otro período.</p>
+        <button
+          class="btn-primary"
+          (click)="activate()"
+          [disabled]="activating()"
+        >
+          @if (activating()) {
+            <span class="spinner spinner--sm"></span>
+          } @else {
+            Renovar Premium
+          }
+        </button>
+      }
+    </div>
+    }
+  }
+</div>

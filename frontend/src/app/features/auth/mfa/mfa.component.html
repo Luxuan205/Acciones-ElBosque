@@ -1,0 +1,98 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <!-- Header -->
+    <div class="auth-card__header">
+      <div class="auth-card__logo">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <rect x="4" y="9" width="12" height="9" rx="2" stroke="currentColor" stroke-width="1.6"/>
+          <path d="M7 9V6.5a3 3 0 016 0V9" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <h1>Verificación en dos pasos</h1>
+      <p>
+        Ingresa el código de 6 dígitos enviado a
+        @if (maskedEmail()) {
+          <strong>{{ maskedEmail() }}</strong>
+        } @else {
+          tu correo electrónico
+        }
+      </p>
+    </div>
+
+    @if (errorMsg()) {
+      <div class="alert alert-danger">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true" style="flex-shrink:0">
+          <path d="M8 2.5L14.2 13H1.8L8 2.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M8 7v2.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="8" cy="11.5" r="0.75" fill="currentColor"/>
+        </svg>
+        {{ errorMsg() }}
+      </div>
+    }
+
+    <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate>
+      <div class="form-group">
+        <label>Código de verificación</label>
+        <input
+          type="text"
+          class="form-control otp-input"
+          [class.is-invalid]="f['otpCode'].touched && f['otpCode'].invalid"
+          formControlName="otpCode"
+          placeholder="123456"
+          maxlength="6"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+        />
+        @if (f['otpCode'].touched && f['otpCode'].errors?.['required']) {
+          <span class="form-error">El código es obligatorio.</span>
+        }
+        @if (f['otpCode'].touched && f['otpCode'].errors?.['pattern']) {
+          <span class="form-error">El código debe tener 6 dígitos.</span>
+        }
+      </div>
+
+      <button
+        type="submit"
+        class="btn-primary btn-block"
+        [disabled]="loading() || form.invalid"
+      >
+        @if (loading()) {
+          <span class="spinner spinner--sm"></span> Verificando...
+        } @else {
+          Verificar código
+        }
+      </button>
+    </form>
+
+    <!-- Resend -->
+    <div class="resend-section">
+      @if (cooldown() > 0) {
+        <p class="countdown">
+          Reenviar código en <span>{{ cooldown() }}s</span>
+        </p>
+      } @else {
+        <button
+          class="resend-btn"
+          (click)="resendOtp()"
+          [disabled]="resending()"
+        >
+          @if (resending()) {
+            <span class="spinner spinner--sm"></span>
+          }
+          Reenviar código
+        </button>
+      }
+    </div>
+
+    <div class="auth-card__footer">
+      <p>
+        <a routerLink="/login" class="back-link">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+            <path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          Volver al inicio de sesión
+        </a>
+      </p>
+    </div>
+  </div>
+</div>

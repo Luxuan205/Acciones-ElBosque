@@ -1,0 +1,134 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Panel de Administración</h1>
+    <p class="card__subtitle text-muted">Métricas operacionales y resumen financiero de la plataforma</p>
+  </div>
+
+  <!-- Operational Metrics -->
+  <section class="mt-3">
+    <h2 class="section-label mb-2">Métricas Operacionales</h2>
+
+    @if (loadingMetrics()) {
+      <div class="loading-container"><div class="spinner"></div></div>
+    } @else if (metricsError()) {
+      <div class="alert alert-danger">{{ metricsError() }}</div>
+    } @else if (metrics()) {
+      <div class="grid-4">
+        <!-- Market Status -->
+        <div class="card">
+          <p class="card__subtitle">Estado del Mercado</p>
+          <div class="card__value mt-2">
+            @if (metrics()!.marketStatus === 'OPEN') {
+              <span class="badge-green badge--lg">{{ metrics()!.marketStatus }}</span>
+            } @else {
+              <span class="badge-red badge--lg">{{ metrics()!.marketStatus }}</span>
+            }
+          </div>
+        </div>
+
+        <!-- Active Orders -->
+        <div class="card">
+          <p class="card__subtitle">Órdenes Activas</p>
+          <p class="card__value text-cyan mt-2">{{ formatNumber(metrics()!.activeOrders) }}</p>
+        </div>
+
+        <!-- Connected Users -->
+        <div class="card">
+          <p class="card__subtitle">Usuarios Conectados</p>
+          <p class="card__value text-cyan mt-2">{{ formatNumber(metrics()!.connectedUsers) }}</p>
+        </div>
+
+        <!-- Today Transactions -->
+        <div class="card">
+          <p class="card__subtitle">Transacciones Hoy</p>
+          <p class="card__value text-cyan mt-2">{{ formatNumber(metrics()!.todayTransactions) }}</p>
+        </div>
+
+        <!-- System Alerts -->
+        <div class="card col-span-4">
+          <div class="flex-between">
+            <div>
+              <p class="card__subtitle">Alertas del Sistema Activas</p>
+              <p class="card__value mt-2" [class.text-red]="metrics()!.activeSystemAlerts > 0" [class.text-green]="metrics()!.activeSystemAlerts === 0">
+                {{ formatNumber(metrics()!.activeSystemAlerts) }}
+              </p>
+            </div>
+            @if (metrics()!.activeSystemAlerts > 0) {
+              <span class="badge-red">Requiere atención</span>
+            } @else {
+              <span class="badge-green">Sin alertas</span>
+            }
+          </div>
+        </div>
+      </div>
+    }
+  </section>
+
+  <div class="divider mt-3 mb-3"></div>
+
+  <!-- Financial Summary -->
+  <section>
+    <div class="flex-between mb-3">
+      <h2 class="section-label">Resumen Financiero</h2>
+      <div class="flex gap-1">
+        @for (period of periods; track period) {
+          <button
+            class="period-btn"
+            [class.active]="selectedPeriod() === period"
+            (click)="onPeriodChange(period)"
+          >
+            {{ period }}
+          </button>
+        }
+      </div>
+    </div>
+
+    @if (loadingFinancial()) {
+      <div class="loading-container"><div class="spinner"></div></div>
+    } @else if (financialError()) {
+      <div class="alert alert-danger">{{ financialError() }}</div>
+    } @else if (financial()) {
+      <div class="grid-4">
+        <div class="card">
+          <p class="card__subtitle">Volumen Total Transacciones</p>
+          <p class="card__value text-cyan mt-2">{{ formatCurrency(financial()!.totalTransactionVolume) }}</p>
+          <p class="card__subtitle text-muted text-xs">{{ financial()!.from }} — {{ financial()!.to }}</p>
+        </div>
+        <div class="card">
+          <p class="card__subtitle">Comisiones Estimadas</p>
+          <p class="card__value text-green mt-2">{{ formatCurrency(financial()!.estimatedCommissionRevenue) }}</p>
+        </div>
+        <div class="card">
+          <p class="card__subtitle">Nuevos Registros</p>
+          <p class="card__value text-cyan mt-2">{{ formatNumber(financial()!.newRegistrations) }}</p>
+        </div>
+        <div class="card">
+          <p class="card__subtitle">Suscripciones Premium Activas</p>
+          <p class="card__value text-cyan mt-2">{{ formatNumber(financial()!.activePremiumSubscriptions) }}</p>
+        </div>
+      </div>
+    }
+  </section>
+
+  <div class="divider mt-3 mb-3"></div>
+
+  <!-- Admin Links -->
+  <section>
+    <h2 class="section-label mb-2">Accesos Rápidos</h2>
+
+    @if (loadingLinks()) {
+      <div class="loading-container"><div class="spinner"></div></div>
+    } @else if (links().length > 0) {
+      <div class="grid-3">
+        @for (link of links(); track link.endpoint) {
+          <a [href]="link.endpoint" class="link-card">
+            <p class="link-card__label">{{ link.label }}</p>
+            <p class="link-card__desc">{{ link.description }}</p>
+          </a>
+        }
+      </div>
+    } @else {
+      <p class="text-muted">No hay accesos rápidos disponibles.</p>
+    }
+  </section>
+</div>

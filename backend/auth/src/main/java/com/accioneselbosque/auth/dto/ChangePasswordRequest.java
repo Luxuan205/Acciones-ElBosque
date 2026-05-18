@@ -12,5 +12,5 @@ public record ChangePasswordRequest(
         String newPassword,
 
         @NotBlank(message = "La confirmación de contraseña es requerida")
-        String confirmNewPassword
+        String confirmPassword
 ) {}

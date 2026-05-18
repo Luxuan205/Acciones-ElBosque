@@ -11,9 +11,17 @@ spring:
     password: ${SPRING_DATASOURCE_PASSWORD}
     driver-class-name: org.postgresql.Driver
 
+  cache:
+    type: simple
+
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: none
+    defer-datasource-initialization: true
     show-sql: false
     properties:
       hibernate:
@@ -41,6 +49,13 @@ app:
     secret: ${JWT_SECRET:ThisIsA256BitDevSecretForLocalTestingPurposesOnly1234}
   verification:
     base-url: ${APP_VERIFICATION_BASE_URL:http://localhost:8080}
+  login:
+    max-attempts: ${APP_LOGIN_MAX_ATTEMPTS:5}
+    lock-minutes: ${APP_LOGIN_LOCK_MINUTES:30}
+    otp-ttl-minutes: ${APP_LOGIN_OTP_TTL_MINUTES:5}
+    session-ttl-minutes: ${APP_LOGIN_SESSION_TTL_MINUTES:5}
+    max-resends: ${APP_LOGIN_MAX_RESENDS:3}
+    resend-window-minutes: ${APP_LOGIN_RESEND_WINDOW_MINUTES:5}
 
 management:
   endpoints:

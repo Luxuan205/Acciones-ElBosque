@@ -1,0 +1,11 @@
+:host {
+  display: block;
+  padding: 1.5rem 0;
+}
+
+.filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
+  align-items: flex-end;
+}

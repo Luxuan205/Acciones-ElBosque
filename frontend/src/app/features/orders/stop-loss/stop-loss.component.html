@@ -1,0 +1,138 @@
+<div class="container">
+  <div class="page-header">
+    <h1>Stop Loss / Take Profit</h1>
+    <a routerLink="/orders/history" class="btn-secondary btn-sm">Ver historial</a>
+  </div>
+
+  <div class="order-form">
+    @if (error()) {
+      <div class="alert alert-danger">{{ error() }}</div>
+    }
+
+    @if (success()) {
+      <div class="alert alert-success">{{ success() }}</div>
+    }
+
+    <div class="card">
+      <h2 class="card__title">Nueva Orden de Protección</h2>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label for="symbol">Símbolo de la acción</label>
+          <input
+            id="symbol"
+            type="text"
+            formControlName="symbol"
+            class="form-control"
+            placeholder="Ej: AAPL, MSFT, GOOGL"
+            autocomplete="off"
+          />
+          @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
+            <span class="form-error">El símbolo es requerido.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="quantity">Cantidad de acciones</label>
+          <input
+            id="quantity"
+            type="number"
+            formControlName="quantity"
+            class="form-control"
+            min="1"
+          />
+          @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+            <span class="form-error">La cantidad debe ser al menos 1.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="triggerPrice">Precio de activación (COP)</label>
+          <input
+            id="triggerPrice"
+            type="number"
+            formControlName="triggerPrice"
+            class="form-control"
+            min="0.01"
+            step="0.01"
+            placeholder="Precio que activa la orden"
+          />
+          @if (form.get('triggerPrice')?.invalid && form.get('triggerPrice')?.touched) {
+            <span class="form-error">El precio de activación debe ser mayor a 0.</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label for="targetPrice">Precio objetivo (COP) — opcional</label>
+          <input
+            id="targetPrice"
+            type="number"
+            formControlName="targetPrice"
+            class="form-control"
+            min="0.01"
+            step="0.01"
+            placeholder="Solo para BOTH o TAKE_PROFIT"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de orden</label>
+          <div class="type-radio-group mt-2">
+            @for (opt of typeOptions; track opt.value) {
+              <label class="radio-option" [class.active]="form.get('type')?.value === opt.value">
+                <input
+                  type="radio"
+                  [value]="opt.value"
+                  formControlName="type"
+                />
+                <div class="radio-content">
+                  <strong>{{ opt.label }}</strong>
+                  <span class="text-muted">{{ opt.description }}</span>
+                </div>
+              </label>
+            }
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary btn-block mt-3"
+          [disabled]="form.invalid || loading()"
+        >
+          @if (loading()) {
+            <span class="spinner"></span> Procesando...
+          } @else {
+            Crear orden de protección
+          }
+        </button>
+      </form>
+
+      @if (result()) {
+        <div class="preview-card mt-3">
+          <div class="divider"></div>
+          <h3 class="card__title">Orden creada</h3>
+          <div class="flex-between mt-2">
+            <span class="text-muted">ID</span>
+            <span class="text-cyan">#{{ result()!.id }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Símbolo</span>
+            <span>{{ result()!.symbol }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Cantidad</span>
+            <span>{{ result()!.quantity }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Estado</span>
+            <span class="badge-yellow">{{ result()!.status }}</span>
+          </div>
+          <div class="flex-between mt-2">
+            <span class="text-muted">Creada</span>
+            <span>{{ result()!.createdAt | date:'short' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

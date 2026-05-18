@@ -1,0 +1,86 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Alertas de Mercado</h1>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  <!-- Create Form -->
+  <div class="card mb-3">
+    <h2 class="card__title">Nueva Alerta de Mercado</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()" class="form-group">
+      <div class="form-group">
+        <label for="alertType" class="text-secondary">Tipo de Alerta</label>
+        <select id="alertType" formControlName="alertType" class="form-control">
+          <option value="">Selecciona un tipo</option>
+          @for (type of alertTypes; track type) {
+            <option [value]="type">{{ type }}</option>
+          }
+        </select>
+        @if (form.get('alertType')?.invalid && form.get('alertType')?.touched) {
+          <span class="form-error">Selecciona un tipo de alerta.</span>
+        }
+      </div>
+      <button
+        type="submit"
+        class="btn-primary"
+        [disabled]="form.invalid || submitting()"
+      >
+        @if (submitting()) {
+          <span class="spinner spinner--sm"></span>
+        } @else {
+          Crear Alerta
+        }
+      </button>
+    </form>
+  </div>
+
+  <!-- Alert List -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    @if (alerts().length === 0) {
+      <div class="card empty-state">
+        <p class="text-muted">No tienes alertas de mercado activas</p>
+      </div>
+    } @else {
+      <div class="grid-2">
+        @for (alert of alerts(); track alert.id) {
+          <div class="card">
+            <div class="flex-between mb-2">
+              <span class="badge-cyan">{{ alert.alertType }}</span>
+              @if (alert.active) {
+                <span class="badge-green">Activa</span>
+              } @else {
+                <span class="badge-red">Inactiva</span>
+              }
+            </div>
+            <p class="text-muted">{{ alert.symbol || 'Mercado general' }}</p>
+            <p class="text-muted">{{ formatDate(alert.createdAt) }}</p>
+
+            @if (confirmDeleteId() === alert.id) {
+              <div class="confirm-delete mt-2">
+                <span class="text-secondary">¿Confirmar eliminación?</span>
+                <div class="flex-between mt-2">
+                  <button class="btn-danger btn-sm" (click)="confirmDelete(alert.id)">Eliminar</button>
+                  <button class="btn-outline btn-sm" (click)="cancelDelete()">Cancelar</button>
+                </div>
+              </div>
+            } @else {
+              <button class="btn-danger btn-sm mt-2" (click)="requestDelete(alert.id)">
+                Eliminar
+              </button>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

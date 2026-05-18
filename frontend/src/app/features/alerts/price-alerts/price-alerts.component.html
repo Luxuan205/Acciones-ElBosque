@@ -1,0 +1,121 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Alertas de Precio</h1>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  <!-- Create Form -->
+  <div class="card mb-3">
+    <h2 class="card__title">Nueva Alerta de Precio</h2>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="text-secondary">Símbolo</label>
+          <input
+            type="text"
+            formControlName="symbol"
+            class="form-control"
+            placeholder="Ej: AAPL"
+          />
+          @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
+            <span class="form-error">El símbolo es requerido.</span>
+          }
+        </div>
+        <div class="form-group">
+          <label class="text-secondary">Tipo de Alerta</label>
+          <select formControlName="alertType" class="form-control">
+            <option value="ABSOLUTE">Precio absoluto</option>
+            <option value="PERCENTAGE">Porcentaje de variación</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="text-secondary">Umbral</label>
+          <input
+            type="number"
+            formControlName="threshold"
+            class="form-control"
+            placeholder="0.00"
+            step="0.01"
+          />
+          @if (form.get('threshold')?.invalid && form.get('threshold')?.touched) {
+            <span class="form-error">Ingresa un valor válido mayor a 0.</span>
+          }
+        </div>
+      </div>
+      <button
+        type="submit"
+        class="btn-primary mt-2"
+        [disabled]="form.invalid || submitting()"
+      >
+        @if (submitting()) {
+          <span class="spinner spinner--sm"></span>
+        } @else {
+          Crear Alerta
+        }
+      </button>
+    </form>
+  </div>
+
+  <!-- Alerts Table -->
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    @if (alerts().length === 0) {
+      <div class="card empty-state">
+        <p class="text-muted">No tienes alertas de precio</p>
+      </div>
+    } @else {
+      <div class="card">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Símbolo</th>
+              <th>Tipo</th>
+              <th>Umbral</th>
+              <th>Estado</th>
+              <th>Creada</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (alert of alerts(); track alert.id) {
+              <tr>
+                <td class="text-cyan">{{ alert.symbol }}</td>
+                <td>{{ alert.alertType === 'ABSOLUTE' ? 'Precio abs.' : 'Porcentaje' }}</td>
+                <td>{{ alert.threshold | number:'1.2-2' }}</td>
+                <td>
+                  <span [class]="statusBadge(alert.status)">{{ alert.status }}</span>
+                </td>
+                <td class="text-muted">{{ formatDate(alert.createdAt) }}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button
+                      class="btn-outline btn-sm"
+                      (click)="toggle(alert)"
+                    >
+                      {{ alert.status === 'ACTIVE' ? 'Desactivar' : 'Activar' }}
+                    </button>
+                    <button
+                      class="btn-danger btn-sm"
+                      (click)="delete(alert.id)"
+                    >
+                      Eliminar
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>

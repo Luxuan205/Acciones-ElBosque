@@ -94,6 +94,8 @@ public class ProfileService {
                 investor.getDocumentNumber(),
                 investor.getPhone(),
                 investor.getAccountStatus(),
+                investor.getSubscriptionType() != null ? investor.getSubscriptionType().name() : "STANDARD",
+                investor.getSubscriptionExpiresAt(),
                 investor.getCreatedAt()
         );
     }

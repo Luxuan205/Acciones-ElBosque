@@ -1,0 +1,116 @@
+<div class="container mt-3">
+  <div class="back-link mb-2">
+    <a routerLink="/market" class="btn-secondary btn-sm">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true"><path d="M9 3L5 7l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Volver al Mercado
+    </a>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+
+  @if (!loading() && !error() && stock()) {
+    <div class="page-header flex-between">
+      <div>
+        <h2>{{ stock()!.symbol }} <span class="text-muted">— {{ stock()!.name }}</span></h2>
+      </div>
+      <div class="actions flex" style="gap: 0.75rem;">
+        <button
+          class="btn-sm"
+          [class.btn-outline]="!isWatched()"
+          [class.btn-secondary]="isWatched()"
+          (click)="toggleWatchlist()"
+        >
+          @if (isWatched()) {
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="currentColor" aria-hidden="true"><path d="M6.5 1l1.5 3.2 3.5.5-2.5 2.4.6 3.4L6.5 9 3 10.5l.6-3.4L1 4.7l3.5-.5L6.5 1Z"/></svg>
+            En Watchlist
+          } @else {
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true"><path d="M6.5 1l1.5 3.2 3.5.5-2.5 2.4.6 3.4L6.5 9 3 10.5l.6-3.4L1 4.7l3.5-.5L6.5 1Z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+            Agregar a Watchlist
+          }
+        </button>
+        <a
+          [routerLink]="['/orders/buy']"
+          [queryParams]="{ symbol: symbol() }"
+          class="btn-primary btn-sm"
+        >
+          Comprar
+        </a>
+        <a
+          [routerLink]="['/orders/sell']"
+          [queryParams]="{ symbol: symbol() }"
+          class="btn-danger btn-sm"
+        >
+          Vender
+        </a>
+      </div>
+    </div>
+
+    <div class="price-hero mb-3">
+      <span class="current-price">{{ stock()!.currentPrice | currency:'USD':'symbol':'1.2-2' }}</span>
+      <span
+        class="change-badge"
+        [class.badge-green]="stock()!.dayChangePct >= 0"
+        [class.badge-red]="stock()!.dayChangePct < 0"
+      >
+        {{ stock()!.dayChangePct >= 0 ? '+' : '' }}{{ stock()!.dayChangePct | number:'1.2-2' }}%
+      </span>
+    </div>
+
+    <div class="grid-4 mb-3">
+      <div class="card">
+        <div class="card__subtitle">Apertura</div>
+        <div class="card__value">{{ stock()!.openPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Máximo</div>
+        <div class="card__value text-green">{{ stock()!.highPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Mínimo</div>
+        <div class="card__value text-red">{{ stock()!.lowPrice | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Cierre anterior</div>
+        <div class="card__value">{{ stock()!.previousClose | currency:'USD':'symbol':'1.2-2' }}</div>
+      </div>
+    </div>
+
+    <div class="card mb-3">
+      <div class="card__title mb-2">Intradiario</div>
+
+      @if (loadingChart()) {
+        <div class="flex-center" style="height: 130px;">
+          <div class="spinner spinner--sm"></div>
+        </div>
+      } @else if (intraday() && intraday()!.points.length >= 2) {
+        <svg
+          class="chart-svg"
+          [attr.viewBox]="'0 0 ' + svgWidth + ' ' + svgHeight"
+          preserveAspectRatio="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <polyline
+            [attr.points]="buildPolylinePoints(intraday()!.points)"
+            fill="none"
+            stroke="var(--accent-green)"
+            stroke-width="2"
+            stroke-linejoin="round"
+            stroke-linecap="round"
+          />
+        </svg>
+      } @else {
+        <p class="text-muted text-center" style="padding: 1rem 0;">
+          No hay datos intradiarios disponibles.
+        </p>
+      }
+    </div>
+  }
+</div>

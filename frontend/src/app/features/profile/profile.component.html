@@ -1,0 +1,121 @@
+<div class="container">
+  <div class="page-header flex-between">
+    <h1 class="card__title">Mi Perfil</h1>
+    @if (!loading()) {
+      <button class="btn-outline" (click)="toggleEdit()">
+        {{ editMode() ? 'Cancelar' : 'Editar Perfil' }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger">{{ error() }}</div>
+  }
+  @if (success()) {
+    <div class="alert alert-success">{{ success() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else {
+    @if (profile(); as p) {
+    @if (!editMode()) {
+      <!-- View Mode -->
+      <div class="card">
+        <div class="grid-2">
+          <div class="profile-field">
+            <span class="text-muted">Nombre completo</span>
+            <p class="card__value">{{ p.fullName }}</p>
+          </div>
+          <div class="profile-field">
+            <span class="text-muted">Correo electrónico</span>
+            <p class="card__value">{{ p.email }}</p>
+          </div>
+          <div class="profile-field">
+            <span class="text-muted">Número de documento</span>
+            <p class="card__value">{{ p.documentNumber }}</p>
+          </div>
+          <div class="profile-field">
+            <span class="text-muted">Teléfono</span>
+            <p class="card__value">{{ p.phone || '—' }}</p>
+          </div>
+          <div class="profile-field">
+            <span class="text-muted">Estado de cuenta</span>
+            <p>
+              @if (p.accountStatus === 'ACTIVE') {
+                <span class="badge-green">{{ p.accountStatus }}</span>
+              } @else {
+                <span class="badge-red">{{ p.accountStatus }}</span>
+              }
+            </p>
+          </div>
+          <div class="profile-field">
+            <span class="text-muted">Suscripción</span>
+            <p>
+              @if (p.subscriptionType === 'PREMIUM') {
+                <span class="badge-cyan">{{ p.subscriptionType }}</span>
+              } @else {
+                <span class="badge-yellow">{{ p.subscriptionType }}</span>
+              }
+            </p>
+          </div>
+          @if (p.subscriptionExpiresAt) {
+            <div class="profile-field">
+              <span class="text-muted">Vencimiento suscripción</span>
+              <p class="card__value">{{ formatDate(p.subscriptionExpiresAt) }}</p>
+            </div>
+          }
+          <div class="profile-field">
+            <span class="text-muted">Miembro desde</span>
+            <p class="card__value">{{ formatDate(p.createdAt) }}</p>
+          </div>
+        </div>
+      </div>
+    } @else {
+      <!-- Edit Mode -->
+      <div class="card">
+        <form [formGroup]="form" (ngSubmit)="save()">
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="text-secondary">Nombre completo</label>
+              <input type="text" formControlName="fullName" class="form-control" />
+              @if (form.get('fullName')?.invalid && form.get('fullName')?.touched) {
+                <span class="form-error">El nombre es requerido (mínimo 2 caracteres).</span>
+              }
+            </div>
+            <div class="form-group">
+              <label class="text-secondary">Correo electrónico</label>
+              <input type="email" [value]="p.email" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+              <label class="text-secondary">Número de documento</label>
+              <input type="text" [value]="p.documentNumber" class="form-control" readonly />
+            </div>
+            <div class="form-group">
+              <label class="text-secondary">Teléfono</label>
+              <input type="tel" formControlName="phone" class="form-control" placeholder="+57 300 000 0000" />
+            </div>
+          </div>
+          <div class="flex-between mt-3">
+            <button type="submit" class="btn-primary" [disabled]="form.invalid || saving()">
+              @if (saving()) {
+                <span class="spinner spinner--sm"></span>
+              } @else {
+                Guardar Cambios
+              }
+            </button>
+          </div>
+        </form>
+      </div>
+    }
+
+    <div class="divider"></div>
+    <div class="profile-links">
+      <a [routerLink]="['/profile/password']" class="btn-outline btn-sm">Cambiar contraseña</a>
+      <a [routerLink]="['/preferences']" class="btn-outline btn-sm">Preferencias</a>
+    </div>
+    }
+  }
+</div>

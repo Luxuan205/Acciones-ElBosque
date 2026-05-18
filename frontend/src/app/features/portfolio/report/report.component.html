@@ -1,0 +1,123 @@
+<div class="container">
+  <div class="page-header flex-between">
+    <div>
+      <h1>Reporte de Rendimiento</h1>
+      <p class="text-muted">Historial de transacciones y métricas del período</p>
+    </div>
+    <button
+      class="btn-secondary"
+      (click)="exportReport()"
+      [disabled]="exporting() || loading()"
+    >
+      @if (exporting()) {
+        <span class="spinner spinner--sm"></span> Exportando...
+      } @else {
+        Exportar CSV
+      }
+    </button>
+  </div>
+
+  <!-- Period selector -->
+  <div class="period-selector">
+    @for (period of periods; track period) {
+      <button
+        class="period-btn"
+        [class.active]="selectedPeriod() === period"
+        (click)="selectPeriod(period)"
+      >
+        {{ periodLabels[period] }}
+      </button>
+    }
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-danger mb-2">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else if (report()) {
+
+    <!-- Summary metrics cards -->
+    <div class="grid-4 mb-3">
+      <div class="card">
+        <div class="card__subtitle">Volumen Total</div>
+        <div class="card__value text-cyan">{{ formatCOP(report()!.totalVolume) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Comisiones Totales</div>
+        <div class="card__value text-red">{{ formatCOP(report()!.totalCommissions) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Ganancia Realizada</div>
+        <div [class]="report()!.realizedGain >= 0 ? 'card__value text-green' : 'card__value text-red'">
+          {{ formatGain(report()!.realizedGain) }}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Período</div>
+        <div class="card__value card__value--sm">
+          {{ report()!.from | date:'dd/MM/yyyy' }} — {{ report()!.to | date:'dd/MM/yyyy' }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions table -->
+    <div class="card">
+      <h2 class="card__title mb-2">Transacciones</h2>
+
+      @if (report()!.transactions.length === 0) {
+        <p class="text-muted">No hay transacciones en este período.</p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Símbolo</th>
+              <th>Cantidad</th>
+              <th>Precio Ejecución</th>
+              <th>Comisión</th>
+              <th>Monto Bruto</th>
+              <th>Monto Neto</th>
+              <th>Ganancia Realizada</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of report()!.transactions; track tx.id) {
+              <tr>
+                <td class="text-muted">{{ tx.executedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>
+                  <span [class]="tx.transactionType === 'BUY' ? 'badge-green' : 'badge-red'">
+                    {{ tx.transactionType === 'BUY' ? 'COMPRA' : 'VENTA' }}
+                  </span>
+                </td>
+                <td>
+                  <a [routerLink]="['/market', tx.symbol]" class="text-cyan">
+                    {{ tx.symbol }}
+                  </a>
+                </td>
+                <td>{{ tx.quantity | number }}</td>
+                <td>{{ formatCOP(tx.executionPrice) }}</td>
+                <td class="text-red">{{ formatCOP(tx.commission) }}</td>
+                <td>{{ formatCOP(tx.grossAmount) }}</td>
+                <td>{{ formatCOP(tx.netAmount) }}</td>
+                <td>
+                  @if (tx.realizedGain !== undefined && tx.realizedGain !== null) {
+                    <span [class]="tx.realizedGain >= 0 ? 'text-green' : 'text-red'">
+                      {{ formatGain(tx.realizedGain) }}
+                    </span>
+                  } @else {
+                    <span class="text-muted">—</span>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</div>

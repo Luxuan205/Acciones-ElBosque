@@ -1,0 +1,136 @@
+<div class="container">
+  <div class="page-header">
+    <h1 class="card__title">Colocar Orden para Cliente</h1>
+    <p class="card__subtitle text-muted">Coloca órdenes de mercado en nombre de tus clientes asignados</p>
+  </div>
+
+  <div class="grid-2 gap-4 items-start">
+    <!-- Order Form -->
+    <div class="card">
+      <h2 class="card__title card__title--lg mb-3">Nueva Orden</h2>
+
+      @if (submitSuccess()) {
+        <div class="alert alert-success mb-3">{{ submitSuccess() }}</div>
+      }
+      @if (submitError()) {
+        <div class="alert alert-danger mb-3">{{ submitError() }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <div class="form-group">
+          <label>ID del Cliente <span class="required-mark">*</span></label>
+          <input
+            type="number"
+            class="form-control"
+            [class.form-error]="isFieldInvalid('clientId')"
+            formControlName="clientId"
+            placeholder="Ej: 12345"
+            min="1"
+          />
+          @if (isFieldInvalid('clientId')) {
+            <small class="text-red">El ID del cliente es requerido y debe ser mayor a 0.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Símbolo <span class="required-mark">*</span></label>
+          <input
+            type="text"
+            class="form-control text-uppercase"
+            [class.form-error]="isFieldInvalid('symbol')"
+            formControlName="symbol"
+            placeholder="Ej: PFBCOLOM"
+          />
+          @if (isFieldInvalid('symbol')) {
+            <small class="text-red">El símbolo de la acción es requerido.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Cantidad <span class="required-mark">*</span></label>
+          <input
+            type="number"
+            class="form-control"
+            [class.form-error]="isFieldInvalid('quantity')"
+            formControlName="quantity"
+            placeholder="Ej: 100"
+            min="1"
+          />
+          @if (isFieldInvalid('quantity')) {
+            <small class="text-red">La cantidad es requerida y debe ser al menos 1.</small>
+          }
+        </div>
+
+        <div class="form-group">
+          <label>Tipo de Orden <span class="required-mark">*</span></label>
+          <select class="form-control" formControlName="orderType">
+            @for (type of orderTypes; track type) {
+              <option [value]="type">{{ type }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('orderType')) {
+            <small class="text-red">El tipo de orden es requerido.</small>
+          }
+        </div>
+
+        <button
+          type="submit"
+          class="btn-primary btn-block mt-1"
+          [disabled]="submitting()"
+        >
+          @if (submitting()) {
+            <span class="spinner spinner--sm"></span> Procesando...
+          } @else {
+            Colocar Orden
+          }
+        </button>
+      </form>
+    </div>
+
+    <!-- Recent Orders -->
+    <div class="card">
+      <h2 class="card__title card__title--lg mb-3">Órdenes de Esta Sesión</h2>
+
+      @if (recentOrders().length === 0) {
+        <p class="text-muted text-center" style="padding: 2rem 0;">
+          No has colocado órdenes en esta sesión.
+        </p>
+      } @else {
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Orden ID</th>
+              <th>Cliente</th>
+              <th>Símbolo</th>
+              <th>Cantidad</th>
+              <th>Tipo</th>
+              <th>Estado</th>
+              <th>Fecha</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (order of recentOrders(); track order.orderId) {
+              <tr>
+                <td><strong>#{{ order.orderId }}</strong></td>
+                <td>{{ order.clientId }}</td>
+                <td class="text-cyan">{{ order.symbol }}</td>
+                <td>{{ order.quantity }}</td>
+                <td>{{ order.orderType }}</td>
+                <td>
+                  @if (order.status === 'FILLED' || order.status === 'EXECUTED') {
+                    <span class="badge-green">{{ order.status }}</span>
+                  } @else if (order.status === 'REJECTED' || order.status === 'CANCELLED') {
+                    <span class="badge-red">{{ order.status }}</span>
+                  } @else {
+                    <span class="badge-yellow">{{ order.status }}</span>
+                  }
+                </td>
+                <td class="text-muted text-date">{{ formatDate(order.createdAt) }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  </div>
+</div>

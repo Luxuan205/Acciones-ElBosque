@@ -20,6 +20,10 @@
     <module>auth</module>
     <module>configuration</module>
     <module>market-data</module>
+    <module>orders</module>
+    <module>portfolio</module>
+    <module>notifications</module>
+    <module>audit-compliance</module>
     <module>app</module>
   </modules>
 

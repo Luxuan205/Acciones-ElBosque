@@ -36,7 +36,13 @@ public class MarketStatusService {
 
     @PostConstruct
     public void init() {
-        refreshStatus();
+        try {
+            refreshStatus();
+        } catch (Exception e) {
+            log.warn("Market status init deferred - DB not ready: {}", e.getMessage());
+            marketOpen.set(false);
+            currentStatus = buildStatus(false, false, null, null, null);
+        }
     }
 
     @Scheduled(fixedRate = 60_000)

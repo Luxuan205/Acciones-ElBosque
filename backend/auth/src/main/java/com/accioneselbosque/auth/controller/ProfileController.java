@@ -23,7 +23,7 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.getProfile(investorId));
     }
 
-    @PutMapping("/profile/personal")
+    @PutMapping({"/profile", "/profile/personal"})
     public ResponseEntity<ProfileResponse> updatePersonalData(
             Authentication authentication,
             @Valid @RequestBody UpdatePersonalDataRequest request) {
@@ -31,11 +31,11 @@ public class ProfileController {
         return ResponseEntity.ok(profileService.updatePersonalData(investorId, request));
     }
 
-    @PutMapping("/change-password")
+    @PutMapping({"/password", "/change-password"})
     public ResponseEntity<Void> changePassword(
             Authentication authentication,
             @Valid @RequestBody ChangePasswordRequest request) {
-        if (!request.newPassword().equals(request.confirmNewPassword())) {
+        if (!request.newPassword().equals(request.confirmPassword())) {
             throw new IllegalArgumentException("Las contraseñas no coinciden");
         }
         Long investorId = Long.parseLong(authentication.getName());

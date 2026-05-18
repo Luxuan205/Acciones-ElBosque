@@ -4,11 +4,13 @@ import com.accioneselbosque.auth.model.AccountStatus;
 import java.time.LocalDateTime;
 
 public record ProfileResponse(
-        Long investorId,
+        Long id,
         String fullName,
         String email,
         String documentNumber,
         String phone,
         AccountStatus accountStatus,
+        String subscriptionType,
+        LocalDateTime subscriptionExpiresAt,
         LocalDateTime createdAt
 ) {}

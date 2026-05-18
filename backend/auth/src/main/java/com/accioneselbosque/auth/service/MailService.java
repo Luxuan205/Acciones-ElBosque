@@ -42,6 +42,40 @@ public class MailService {
         }
     }
 
+    public void sendOtp(String email, String otpCode) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setTo(email);
+            helper.setSubject("Tu código de verificación - Acciones El Bosque");
+            helper.setText("<p>Tu código de verificación es: <strong>" + otpCode + "</strong></p><p>Válido por 5 minutos.</p>", true);
+            mailSender.send(message);
+            log.info("OTP sent to {}", email);
+        } catch (MessagingException e) {
+            // IMP-1: Mail failure does not rollback transaction. OTP session is persisted
+            // even if email delivery fails; this is intentional for user experience.
+            log.error("Failed to send OTP to {}", email, e);
+        }
+    }
+
+    public void sendPasswordResetEmail(String email, String tokenValue) {
+        String resetUrl = verificationBaseUrl + "/auth/reset-password?token=" + tokenValue;
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            helper.setTo(email);
+            helper.setSubject("Restablecimiento de contraseña - Acciones El Bosque");
+            helper.setText("<p>Se ha iniciado un restablecimiento de contraseña para tu cuenta.</p>" +
+                    "<p><a href=\"" + resetUrl + "\">Restablecer contraseña</a></p>" +
+                    "<p>Este enlace es válido por 24 horas. Si no solicitaste este cambio, ignora este correo.</p>",
+                    true);
+            mailSender.send(message);
+            log.info("Password reset email sent to {}", email);
+        } catch (MessagingException e) {
+            log.error("Failed to send password reset email to {}", email, e);
+        }
+    }
+
     private String loadEmailTemplate() {
         try (var stream = getClass().getResourceAsStream("/templates/email/verification-email.html")) {
             if (stream == null) return buildFallbackEmail();

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+class ConfigurationExceptionHandler {
 
     @ExceptionHandler(HolidayAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)
@@ -40,5 +40,17 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public Map<String, String> handleIllegalArgument(IllegalArgumentException ex) {
         return Map.of("error", "BAD_REQUEST", "message", ex.getMessage());
+    }
+
+    @ExceptionHandler(ParameterNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public Map<String, String> handleParameterNotFound(ParameterNotFoundException ex) {
+        return Map.of("error", "PARAMETER_NOT_FOUND", "message", ex.getMessage());
+    }
+
+    @ExceptionHandler(InvalidParameterValueException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public Map<String, String> handleInvalidParameterValue(InvalidParameterValueException ex) {
+        return Map.of("error", "INVALID_VALUE", "parameterKey", ex.getParameterKey(), "message", ex.getMessage());
     }
 }

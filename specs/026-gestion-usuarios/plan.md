@@ -1,6 +1,74 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: AB-41 — Gestión de Usuarios por el Administrador
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
+**Branch**: `026-gestion-usuarios` | **Date**: 2026-05-13 | **Spec**: [spec.md](./spec.md)
+**Input**: `specs/026-gestion-usuarios/spec.md`
+
+## Summary
+
+Extiende el módulo `auth` con endpoints administrativos para buscar, filtrar, ver, suspender,
+desbloquear, cambiar roles y restablecer contraseñas de usuarios. Reutiliza la entidad `Investor`
+existente y los nuevos estados SUSPENDED y BLOCKED del spec AB-16 (MFA). Al suspender, se
+invalida la sesión activa del usuario eliminando sus `MfaSession` activas.
+
+## Technical Context
+
+**Language/Version**: Java 17
+**Primary Dependencies**: Spring Boot 4.0.6, Spring Data JPA (Specification para filtros dinámicos), Lombok
+**Storage**: PostgreSQL — ninguna tabla nueva; usa `investor`, `mfa_session`; añade campo `role` a `investor` (V30)
+**Testing**: JUnit 5, @WebMvcTest, @DataJpaTest, Mockito
+**Target Platform**: REST API backend
+**Project Type**: Módulo `auth`
+**Performance Goals**: Cambios de estado < 5 segundos (SC-001); búsquedas < 3 segundos para 10k usuarios (SC-004)
+**Constraints**: No se puede suspender al último ADMIN; cambios de rol ADMIN requieren confirmación extra
+**Scale/Scope**: Proyecto académico
+
+## Constitution Check
+
+| Principio | Requisito | Estado |
+|-----------|-----------|--------|
+| I. Module Cohesion | Gestión de usuarios en `auth`; auditoría enviada a `audit-compliance` in-process | ✅ PASS |
+| II. API Contract-First | `contracts/admin-users-api.md` define CRUD administrativo de usuarios | ✅ PASS |
+| III. Test-Before-Ship | Tests: suspender ACTIVE → no puede login; desbloquear BLOCKED → puede login; no puede eliminar último ADMIN | ✅ PASS |
+| IV. Security & Compliance | Solo ADMIN; toda acción registrada en `audit-compliance` | ✅ PASS |
+| V. Conventional Workflow | Rama `026-gestion-usuarios` | ✅ PASS |
+
+**GATE PASSED — sin violaciones.**
+
+## Project Structure
+
+### Documentation (this feature)
+
+```text
+specs/026-gestion-usuarios/
+├── plan.md
+├── research.md
+├── data-model.md
+├── contracts/
+│   └── admin-users-api.md
+└── tasks.md
+```
+
+### Source Code (auth)
+
+```text
+backend/auth/src/main/java/com/accioneselbosque/auth/
+├── controller/
+│   └── AdminUserController.java          ← GET /admin/users, GET /admin/users/{id}, PATCH /admin/users/{id}/status, PATCH /admin/users/{id}/role, POST /admin/users/{id}/reset-password
+├── service/
+│   └── AdminUserService.java             ← buscar, suspender, desbloquear, cambiar rol, reset password
+├── model/
+│   └── InvestorRole.java                 ← INVESTOR | BROKER | ADMIN
+└── repository/
+    └── InvestorSpecification.java        ← Spring Data Specification para filtros dinámicos
+
+app/src/main/resources/db/migration/
+└── V30__add_role_to_investor.sql         ← columna role VARCHAR(20) DEFAULT 'INVESTOR'
+```
+
+**Structure Decision**: El campo `role` actualmente se incluye en el JWT pero no se persiste en
+`investor`. V30 lo añade como columna persistida. La suspensión invalida la sesión del usuario
+eliminando sus `mfa_session` activas. Para restablecimiento de contraseña se reutiliza
+`VerificationToken` con un nuevo tipo `PASSWORD_RESET`.
 **Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
 
 **Note**: This template is filled in by the `/speckit-plan` command. See `.specify/templates/plan-template.md` for the execution workflow.

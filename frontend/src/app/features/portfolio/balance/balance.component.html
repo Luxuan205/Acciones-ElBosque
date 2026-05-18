@@ -1,0 +1,113 @@
+<div class="container">
+  <div class="page-header">
+    <h1>Balance de Cuenta</h1>
+    <p class="text-muted">Resumen de tu capital y movimientos de fondos</p>
+  </div>
+
+  <!-- Balance summary cards -->
+  @if (loadingBalance()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+    </div>
+  } @else if (errorBalance()) {
+    <div class="alert alert-danger">{{ errorBalance() }}</div>
+  } @else if (balance()) {
+    <div class="grid-4 mb-3">
+      <div class="card">
+        <div class="card__subtitle">Saldo Disponible</div>
+        <div class="card__value text-cyan">{{ formatCOP(balance()!.availableBalance) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Reservado en Órdenes</div>
+        <div class="card__value">{{ formatCOP(balance()!.reservedForOrders) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Total Invertido</div>
+        <div class="card__value">{{ formatCOP(balance()!.totalInvested) }}</div>
+      </div>
+      <div class="card">
+        <div class="card__subtitle">Valor Total del Portafolio</div>
+        <div class="card__value">{{ formatCOP(balance()!.totalPortfolioValue) }}</div>
+      </div>
+    </div>
+
+    <!-- Unrealized gain -->
+    <div class="card mb-3">
+      <div class="flex-between">
+        <span class="card__subtitle">Ganancia No Realizada</span>
+        <div>
+          <span [class]="balance()!.unrealizedGain >= 0 ? 'card__value text-green' : 'card__value text-red'">
+            {{ balance()!.unrealizedGain >= 0 ? '+' : '' }}{{ formatCOP(balance()!.unrealizedGain) }}
+          </span>
+          <span [class]="balance()!.unrealizedGainPercent >= 0 ? 'text-green ml-2' : 'text-red ml-2'">
+            ({{ balance()!.unrealizedGainPercent >= 0 ? '+' : '' }}{{ balance()!.unrealizedGainPercent | number:'1.2-2' }}%)
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="divider"></div>
+
+  <!-- Fund movements table -->
+  <div class="card mt-3">
+    <div class="flex-between mb-2">
+      <h2 class="card__title">Movimientos de Fondos</h2>
+    </div>
+
+    @if (loadingMovements()) {
+      <div class="loading-container">
+        <div class="spinner spinner--sm"></div>
+      </div>
+    } @else if (errorMovements()) {
+      <div class="alert alert-danger">{{ errorMovements() }}</div>
+    } @else if (movements().length === 0) {
+      <p class="text-muted">No hay movimientos registrados.</p>
+    } @else {
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>Monto</th>
+            <th>Descripción</th>
+            <th>Fecha</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (mov of movements(); track mov.id) {
+            <tr>
+              <td>
+                <span [class]="isPositiveMovement(mov.movementType) ? 'badge-green' : 'badge-red'">
+                  {{ mov.movementType }}
+                </span>
+              </td>
+              <td [class]="isPositiveMovement(mov.movementType) ? 'text-green' : 'text-red'">
+                {{ isPositiveMovement(mov.movementType) ? '+' : '-' }}{{ formatCOP(mov.amount) }}
+              </td>
+              <td>{{ mov.description }}</td>
+              <td class="text-muted">{{ mov.executedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <!-- Pagination -->
+      <div class="pagination mt-2 flex-between">
+        <span class="text-muted">
+          Total: {{ totalElements() }} movimientos
+        </span>
+        <div>
+          <button class="btn-outline btn-sm" [disabled]="!hasPrev" (click)="prevPage()">
+            Anterior
+          </button>
+          <span class="text-muted" style="margin: 0 0.75rem;">
+            Página {{ currentPage() + 1 }}
+          </span>
+          <button class="btn-outline btn-sm" [disabled]="!hasNext" (click)="nextPage()">
+            Siguiente
+          </button>
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,47 @@
+<div class="auth-page">
+  <div class="auth-card">
+    @if (status() === 'loading') {
+      <div class="auth-card__header">
+        <div class="verify-icon loading">
+          <span class="spinner spinner--lg"></span>
+        </div>
+        <h1>Verificando cuenta...</h1>
+        <p>Por favor espera un momento.</p>
+      </div>
+    }
+
+    @if (status() === 'success') {
+      <div class="auth-card__header">
+        <div class="verify-icon success">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M4 12l6 6 10-10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h1>¡Cuenta verificada!</h1>
+        <p>{{ message() }}</p>
+      </div>
+      <div class="auth-card__footer">
+        <a routerLink="/login" class="btn-primary btn-block">
+          Iniciar sesión
+        </a>
+      </div>
+    }
+
+    @if (status() === 'error') {
+      <div class="auth-card__header">
+        <div class="verify-icon error">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h1>Error de verificación</h1>
+        <p>{{ message() }}</p>
+      </div>
+      <div class="auth-card__footer">
+        <a routerLink="/login" class="btn-primary btn-block">
+          Volver al inicio
+        </a>
+      </div>
+    }
+  </div>
+</div>
