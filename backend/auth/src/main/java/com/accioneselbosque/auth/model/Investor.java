@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -42,6 +43,22 @@ public class Investor {
 
     @Column(name = "subscription_expires_at")
     private LocalDateTime subscriptionExpiresAt;
+
+    @Column(name = "available_balance", nullable = false, precision = 18, scale = 2)
+    private BigDecimal availableBalance = BigDecimal.valueOf(10_000_000);
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role", nullable = false, length = 20)
+    private InvestorRole role = InvestorRole.INVESTOR;
+
+    @Column(name = "failed_attempts", nullable = false)
+    private int failedAttempts = 0;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
+    @Column(name = "totp_secret", length = 64)
+    private String totpSecret;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
