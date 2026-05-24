@@ -1,132 +1,93 @@
-<div class="dashboard">
+<div class="almanac">
   <div class="container">
 
-    <!-- Welcome Header -->
-    <div class="dashboard__header">
-      <div>
-        <h1>
-          Bienvenido@if (profile()?.fullName) {, {{ profile()!.fullName.split(' ')[0] }}}
-        </h1>
-        <p class="text-muted">
-          Resumen de tu cuenta en Acciones El Bosque
-        </p>
+    <!-- Masthead -->
+    <header class="almanac__masthead">
+      <div class="almanac__masthead-col">
+        <span class="num tiny">Vol. 2026 · No. 1</span>
+        <span class="muted tiny">Universidad El Bosque</span>
       </div>
-      <div class="dashboard__header-actions">
-        <a routerLink="/orders/buy" class="btn-primary">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 2v10M2 7l5-5 5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Comprar
-        </a>
-        <a routerLink="/orders/sell" class="btn-danger">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-            <path d="M7 12V2M2 7l5 5 5-5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-          Vender
-        </a>
+      <div class="almanac__masthead-title">
+        <h1 class="serif">El Almanaque del Inversionista</h1>
       </div>
-    </div>
+      <div class="almanac__masthead-col almanac__masthead-col--right">
+        <span class="num tiny">{{ today | date:'dd MMMM yyyy' }}</span>
+        <span class="tiny up">● Mercado abierto</span>
+      </div>
+    </header>
 
-    <!-- Summary Cards -->
-    <div class="grid-4 dashboard__cards">
-
-      <!-- Balance Card -->
-      <div class="card">
-        <div class="card__title">Balance Disponible</div>
+    <!-- Hero section: balance + quick buy/sell -->
+    <section class="almanac__hero">
+      <div class="almanac__hero-main">
+        <p class="tiny" style="margin-bottom:0.5rem">Balance disponible</p>
         @if (loadingBalance()) {
-          <div class="spinner spinner--sm"></div>
+          <div class="spinner"></div>
         } @else {
-          <div class="card__value">
-            {{ formatCurrency(balance()?.availableBalance) }}
-          </div>
-          <div class="card__subtitle">
-            Reservado: {{ formatCurrency(balance()?.reservedForOrders) }}
-          </div>
+          <div class="almanac__hero-number num">{{ formatCurrency(balance()?.availableBalance) }}</div>
+          <p class="almanac__drop-cap">
+            Tu portafolio vale <strong class="num">{{ formatCurrency(balance()?.totalPortfolioValue) }}</strong>
+            con una ganancia no realizada de
+            <strong [class.up]="(balance()?.unrealizedGain ?? 0) >= 0"
+                    [class.down]="(balance()?.unrealizedGain ?? 0) < 0"
+                    class="num">
+              {{ formatCurrencyShort(balance()?.unrealizedGain ?? 0) }}
+            </strong>
+            ({{ formatPercent(balance()?.unrealizedGainPercent) }}).
+          </p>
         }
       </div>
-
-      <!-- Portfolio Value -->
-      <div class="card">
-        <div class="card__title">Valor del Portafolio</div>
-        @if (loadingBalance()) {
-          <div class="spinner spinner--sm"></div>
-        } @else {
-          <div class="card__value">
-            {{ formatCurrency(balance()?.totalPortfolioValue) }}
+      <aside class="almanac__hero-aside">
+        <div class="almanac__stat-rows">
+          <div class="almanac__stat-row">
+            <span class="muted">Reservado</span>
+            <span class="num">{{ formatCurrency(balance()?.reservedForOrders) }}</span>
           </div>
-          <div class="card__subtitle"
-               [class.text-green]="(balance()?.unrealizedGainPercent ?? 0) >= 0"
-               [class.text-red]="(balance()?.unrealizedGainPercent ?? 0) < 0">
-            {{ formatPercent(balance()?.unrealizedGainPercent) }}
-            ({{ formatCurrency(balance()?.unrealizedGain) }})
+          <div class="almanac__stat-row">
+            <span class="muted">Órdenes activas</span>
+            <span class="num">{{ activeOrders.length }}</span>
           </div>
-        }
-      </div>
-
-      <!-- Active Orders -->
-      <div class="card">
-        <div class="card__title">Órdenes Activas</div>
-        @if (loadingOrders()) {
-          <div class="spinner spinner--sm"></div>
-        } @else {
-          <div class="card__value">{{ activeOrders.length }}</div>
-          <div class="card__subtitle">
-            <a routerLink="/orders/history">Ver historial completo</a>
+          <div class="almanac__stat-row">
+            <span class="muted">Suscripción</span>
+            <span [class.tag-moss]="profile()?.subscriptionType === 'PREMIUM'"
+                  [class.tag-neutral]="profile()?.subscriptionType !== 'PREMIUM'">
+              {{ profile()?.subscriptionType ?? '—' }}
+            </span>
           </div>
-        }
-      </div>
+        </div>
+        <div class="almanac__hero-btns">
+          <a routerLink="/orders/buy" class="btn-primary">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 1v10M1 6l5-5 5 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Comprar
+          </a>
+          <a routerLink="/orders/sell" class="btn-danger">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+              <path d="M6 11V1M1 6l5 5 5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Vender
+          </a>
+        </div>
+      </aside>
+    </section>
 
-      <!-- Subscription -->
-      <div class="card">
-        <div class="card__title">Suscripción</div>
-        @if (loadingProfile()) {
-          <div class="spinner spinner--sm"></div>
-        } @else {
-          <div class="card__value subscription-type"
-               [class.premium]="profile()?.subscriptionType === 'PREMIUM'">
-            {{ profile()?.subscriptionType ?? '—' }}
-          </div>
-          @if (profile()?.subscriptionExpiresAt) {
-            <div class="card__subtitle">
-              Vence: {{ profile()!.subscriptionExpiresAt | date:'dd/MM/yyyy' }}
-            </div>
-          } @else {
-            <div class="card__subtitle">
-              <a routerLink="/subscription">Activar premium</a>
-            </div>
-          }
-        }
-      </div>
-    </div>
+    <hr class="dash-divider" />
 
-    <!-- Charts Row -->
+    <!-- Section I: Portfolio chart -->
     @if (!loadingCharts()) {
-      <div class="dashboard__section">
-        <h2 class="dashboard__section-title">Análisis de portafolio</h2>
-
-        <div class="dashboard__charts">
-
-          <!-- Portfolio line chart -->
-          <div class="card">
-            <div class="flex-between mb-2">
-              <div>
-                <div class="card__title card__title--tight">Evolución del portafolio</div>
-                <div class="chart-subtitle">Últimos 30 días (simulado)</div>
-              </div>
-              <div class="pnl-card">
-                <span class="pnl-amount"
-                      [class.positive]="(balance()?.unrealizedGain ?? 0) >= 0"
-                      [class.negative]="(balance()?.unrealizedGain ?? 0) < 0">
-                  {{ formatCurrencyShort(balance()?.unrealizedGain ?? 0) }}
-                </span>
-                <span class="pnl-pct"
-                      [class.positive]="(balance()?.unrealizedGainPercent ?? 0) >= 0"
-                      [class.negative]="(balance()?.unrealizedGainPercent ?? 0) < 0">
-                  ({{ formatPercent(balance()?.unrealizedGainPercent) }})
-                </span>
-              </div>
+      <section class="almanac__section">
+        <div class="almanac__section-head">
+          <span class="tiny muted">§ I</span>
+          <h2 class="serif">Evolución del <em>portafolio</em></h2>
+        </div>
+        <div class="almanac__chart-row">
+          <div class="card card--flush" style="padding:1.5rem">
+            <div class="almanac__period-switcher">
+              <button class="almanac__period-btn almanac__period-btn--active num tiny">30D</button>
+              <button class="almanac__period-btn num tiny">7D</button>
+              <button class="almanac__period-btn num tiny">3M</button>
+              <button class="almanac__period-btn num tiny">1A</button>
             </div>
-
             <apx-chart
               [series]="portfolioSeries"
               [chart]="portfolioChart"
@@ -139,70 +100,72 @@
               [dataLabels]="{ enabled: false }">
             </apx-chart>
           </div>
-
-          <!-- Portfolio donut -->
-          <div class="card">
-            <div class="card__title card__title--sm">Distribución del portafolio</div>
-
-            @if ((positions()?.positions?.length ?? 0) === 0) {
-              <div class="empty-state empty-state--chart">
-                <div class="empty-state__icon">
-                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                    <rect x="4" y="20" width="5" height="8" rx="1" fill="currentColor" opacity="0.35"/>
-                    <rect x="11" y="13" width="5" height="15" rx="1" fill="currentColor" opacity="0.55"/>
-                    <rect x="18" y="7" width="5" height="21" rx="1" fill="currentColor" opacity="0.75"/>
-                    <rect x="25" y="3" width="5" height="25" rx="1" fill="currentColor"/>
-                  </svg>
-                </div>
-                <div class="empty-state__title">Sin posiciones</div>
-              </div>
-            } @else {
-              <apx-chart
-                [series]="donutSeries"
-                [chart]="donutChart"
-                [labels]="donutLabels"
-                [colors]="donutColors"
-                [plotOptions]="donutPlotOptions"
-                [legend]="donutLegend"
-                [dataLabels]="donutDataLabels"
-                [tooltip]="donutTooltip">
-              </apx-chart>
-            }
-          </div>
+          <blockquote class="almanac__quote serif">
+            "El mercado es un dispositivo para transferir dinero de los impacientes a los pacientes."
+            <cite class="tiny muted">— Warren Buffett</cite>
+          </blockquote>
         </div>
-      </div>
+      </section>
+
+      <hr class="dash-divider" />
+
+      <!-- Section II: Donut chart -->
+      <section class="almanac__section">
+        <div class="almanac__section-head">
+          <span class="tiny muted">§ II</span>
+          <h2 class="serif">Distribución del <em>portafolio</em></h2>
+        </div>
+        <div class="almanac__donut-row">
+          @if ((positions()?.positions?.length ?? 0) === 0) {
+            <div class="empty-state">
+              <div class="empty-state__icon">📊</div>
+              <div class="empty-state__title">Sin posiciones</div>
+            </div>
+          } @else {
+            <apx-chart
+              [series]="donutSeries"
+              [chart]="donutChart"
+              [labels]="donutLabels"
+              [colors]="donutColors"
+              [plotOptions]="donutPlotOptions"
+              [legend]="donutLegend"
+              [dataLabels]="donutDataLabels"
+              [tooltip]="donutTooltip">
+            </apx-chart>
+          }
+        </div>
+      </section>
+
+      <hr class="dash-divider" />
     }
 
-    <!-- Watchlist Sparklines -->
+    <!-- Section III: Watchlist sparklines -->
     @if (sparklines().length > 0) {
-      <div class="dashboard__section">
-        <div class="flex-between mb-2">
-          <h2 class="dashboard__section-title">Watchlist</h2>
-          <a routerLink="/watchlist" class="section-link">
-            Ver todo
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M4 2l4 4-4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </a>
+      <section class="almanac__section">
+        <div class="almanac__section-head">
+          <span class="tiny muted">§ III</span>
+          <h2 class="serif">Tu <em>watchlist</em></h2>
+          <a routerLink="/watchlist" class="almanac__section-link tiny">Ver todo →</a>
         </div>
-        <div class="dashboard__sparklines">
+        <div class="almanac__sparklines">
           @for (row of sparklines(); track row.item.symbol) {
-            <div class="sparkline-card">
-              <div class="flex-between">
+            <div class="almanac__spark-card">
+              <div class="almanac__spark-top">
                 <div>
-                  <div class="sparkline-card__symbol">{{ row.item.symbol }}</div>
-                  <div class="sparkline-card__name">{{ row.item.name }}</div>
+                  <div class="almanac__spark-symbol serif">{{ row.item.symbol }}</div>
+                  <div class="tiny muted">{{ row.item.name }}</div>
                 </div>
-                <div class="sparkline-card__price-col">
-                  <div class="sparkline-card__price">
+                <div class="almanac__spark-price-col">
+                  <div class="num" style="font-size:1.1rem;font-weight:500">
                     {{ formatCurrencyShort(row.detail?.currentPrice ?? 0) }}
                   </div>
-                  <div class="sparkline-card__change"
-                       [class.positive]="(row.detail?.dayChangePct ?? 0) >= 0"
-                       [class.negative]="(row.detail?.dayChangePct ?? 0) < 0">
+                  <div class="num tiny"
+                       [class.up]="(row.detail?.dayChangePct ?? 0) >= 0"
+                       [class.down]="(row.detail?.dayChangePct ?? 0) < 0">
                     {{ formatPercent(row.detail?.dayChangePct) }}
                   </div>
                 </div>
               </div>
-
               <apx-chart
                 [series]="row.chartSeries"
                 [chart]="sparkChart"
@@ -214,92 +177,18 @@
             </div>
           }
         </div>
-      </div>
+      </section>
+
+      <hr class="dash-divider" />
     }
 
-    <!-- Quick Actions -->
-    <div class="dashboard__section">
-      <h2 class="dashboard__section-title">Acciones rápidas</h2>
-      <div class="quick-actions">
-
-        <!-- Tier 1 — primary trading actions -->
-        <div class="quick-actions__primary">
-          <a routerLink="/orders/buy" class="qa-trade qa-trade--buy">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-              <path d="M11 3v16M3 11l8-8 8 8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div>
-              <span class="qa-trade__label">Comprar</span>
-              <span class="qa-trade__sub">Orden a precio de mercado</span>
-            </div>
-          </a>
-          <a routerLink="/orders/sell" class="qa-trade qa-trade--sell">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-              <path d="M11 19V3M3 11l8 8 8-8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <div>
-              <span class="qa-trade__label">Vender</span>
-              <span class="qa-trade__sub">Orden a precio de mercado</span>
-            </div>
-          </a>
-        </div>
-
-        <!-- Tier 2 — secondary nav actions -->
-        <nav class="quick-actions__secondary" aria-label="Más acciones">
-          <a routerLink="/orders/limit" class="qa-nav">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M2 4h12M2 8h8M2 12h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <span class="qa-nav__label">Orden límite</span>
-            <span class="qa-nav__desc">Precio máximo o mínimo</span>
-            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a routerLink="/portfolio/positions" class="qa-nav">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <rect x="2" y="9" width="3" height="5" rx="1" fill="currentColor" opacity=".5"/>
-              <rect x="6.5" y="6" width="3" height="8" rx="1" fill="currentColor" opacity=".75"/>
-              <rect x="11" y="3" width="3" height="11" rx="1" fill="currentColor"/>
-            </svg>
-            <span class="qa-nav__label">Mis posiciones</span>
-            <span class="qa-nav__desc">Portafolio de acciones</span>
-            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a routerLink="/orders/history" class="qa-nav">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <circle cx="8" cy="8" r="5.5" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M8 5.5V8.5l2 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="qa-nav__label">Historial</span>
-            <span class="qa-nav__desc">Todas las transacciones</span>
-            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-          <a routerLink="/market" class="qa-nav">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-              <path d="M2 12l3-4 3 2 3.5-5L14 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-            <span class="qa-nav__label">Ver mercado</span>
-            <span class="qa-nav__desc">Precios en tiempo real</span>
-            <svg class="qa-nav__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path d="M5 2l4 5-4 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>
-          </a>
-        </nav>
-
-      </div>
-    </div>
-
-    <!-- Recent Orders -->
+    <!-- Section IV: Orders table -->
     @if (!loadingOrders() && activeOrders.length > 0) {
-      <div class="dashboard__section">
-        <div class="flex-between mb-2">
-          <h2 class="dashboard__section-title">Órdenes activas</h2>
-          <a routerLink="/orders/history" class="section-link">Ver todas</a>
+      <section class="almanac__section">
+        <div class="almanac__section-head">
+          <span class="tiny muted">§ IV</span>
+          <h2 class="serif">Órdenes <em>activas</em></h2>
+          <a routerLink="/orders/history" class="almanac__section-link tiny">Ver todas →</a>
         </div>
         <div class="card card--flush">
           <table class="data-table">
@@ -307,34 +196,77 @@
               <tr>
                 <th>Símbolo</th>
                 <th>Tipo</th>
-                <th>Cantidad</th>
+                <th>Cant.</th>
                 <th>Estado</th>
-                <th>Fecha</th>
+                <th>Tiempo</th>
               </tr>
             </thead>
             <tbody>
               @for (order of activeOrders.slice(0, 5); track order.id) {
                 <tr>
-                  <td><strong>{{ order.symbol }}</strong></td>
+                  <td><strong class="serif" style="font-size:1.05rem">{{ order.symbol }}</strong></td>
                   <td>
-                    <span [class]="order.orderType.includes('BUY') ? 'badge-green' : 'badge-red'">
+                    <span [class]="order.orderType.includes('BUY') ? 'tag-moss' : 'tag-berry'">
                       {{ order.orderType }}
                     </span>
                   </td>
-                  <td>{{ order.quantity }}</td>
-                  <td>
-                    <span class="badge-yellow">{{ order.status }}</span>
-                  </td>
-                  <td class="text-muted text-date">
-                    {{ order.createdAt | date:'dd/MM/yy HH:mm' }}
-                  </td>
+                  <td class="num">{{ order.quantity }}</td>
+                  <td><span class="tag-amber">{{ order.status }}</span></td>
+                  <td class="num tiny muted">{{ order.createdAt | date:'dd/MM/yy HH:mm' }}</td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
-      </div>
+      </section>
+
+      <hr class="dash-divider" />
     }
+
+    <!-- Section V: Quick actions -->
+    <section class="almanac__section">
+      <div class="almanac__section-head">
+        <span class="tiny muted">§ V</span>
+        <h2 class="serif">Acciones <em>rápidas</em></h2>
+      </div>
+      <nav class="almanac__shortcuts" aria-label="Acciones rápidas">
+        <a routerLink="/orders/limit" class="almanac__shortcut">
+          <div>
+            <div class="almanac__shortcut-title serif">Orden límite</div>
+            <div class="muted" style="font-size:0.82rem">Precio máximo o mínimo</div>
+          </div>
+          <span class="serif up" style="font-style:italic">→</span>
+        </a>
+        <a routerLink="/portfolio/positions" class="almanac__shortcut">
+          <div>
+            <div class="almanac__shortcut-title serif">Mis posiciones</div>
+            <div class="muted" style="font-size:0.82rem">Portafolio de acciones</div>
+          </div>
+          <span class="serif up" style="font-style:italic">→</span>
+        </a>
+        <a routerLink="/orders/history" class="almanac__shortcut">
+          <div>
+            <div class="almanac__shortcut-title serif">Historial</div>
+            <div class="muted" style="font-size:0.82rem">Todas las transacciones</div>
+          </div>
+          <span class="serif up" style="font-style:italic">→</span>
+        </a>
+        <a routerLink="/market" class="almanac__shortcut">
+          <div>
+            <div class="almanac__shortcut-title serif">Ver mercado</div>
+            <div class="muted" style="font-size:0.82rem">Precios en tiempo real</div>
+          </div>
+          <span class="serif up" style="font-style:italic">→</span>
+        </a>
+      </nav>
+    </section>
+
+    <!-- Colophon -->
+    <footer class="almanac__colophon">
+      <p class="serif muted" style="font-style:italic;font-size:0.875rem">
+        Acciones El Bosque — Universidad El Bosque · 2026
+      </p>
+    </footer>
 
   </div>
 </div>

@@ -57,6 +57,8 @@ export class DashboardComponent implements OnInit {
   loadingProfile = signal(true);
   loadingCharts = signal(true);
 
+  today = new Date();
+
   // ── Portfolio line chart ───────────────────────────────────
   portfolioSeries: ApexAxisChartSeries = [];
   portfolioChart: ApexChart = {
@@ -67,7 +69,7 @@ export class DashboardComponent implements OnInit {
     animations: { enabled: true, speed: 600 },
     background: 'transparent',
   };
-  portfolioStroke: ApexStroke = { curve: 'smooth', width: 2 };
+  portfolioStroke: ApexStroke = { curve: 'smooth', width: 2.2 };
   portfolioFill: ApexFill = {
     type: 'gradient',
     gradient: {
@@ -76,31 +78,31 @@ export class DashboardComponent implements OnInit {
       opacityTo: 0.0,
       stops: [0, 100],
       colorStops: [
-        { offset: 0, color: '#4aaa60', opacity: 0.2 },
-        { offset: 100, color: '#4aaa60', opacity: 0 },
+        { offset: 0, color: '#3F7A4E', opacity: 0.2 },
+        { offset: 100, color: '#3F7A4E', opacity: 0 },
       ],
     },
   };
   portfolioXAxis: ApexXAxis = {
     type: 'category',
-    labels: { style: { colors: '#4d6857', fontSize: '11px' }, rotate: 0 },
+    labels: { style: { colors: '#7E8A77', fontSize: '11px' }, rotate: 0 },
     axisBorder: { show: false },
     axisTicks: { show: false },
     tickAmount: 6,
   };
   portfolioYAxis: ApexYAxis = {
     labels: {
-      style: { colors: '#4d6857', fontSize: '11px' },
+      style: { colors: '#7E8A77', fontSize: '11px' },
       formatter: (v: number) => this.formatCurrencyShort(v),
     },
   };
   portfolioGrid: ApexGrid = {
-    borderColor: 'rgba(74,170,96,0.08)',
-    strokeDashArray: 3,
+    borderColor: '#E6DDC6',
+    strokeDashArray: 5,
     xaxis: { lines: { show: false } },
   };
   portfolioTooltip: ApexTooltip = {
-    theme: 'dark',
+    theme: 'light',
     y: { formatter: (v: number) => this.formatCurrency(v) },
   };
 
@@ -114,7 +116,7 @@ export class DashboardComponent implements OnInit {
     animations: { enabled: true, speed: 600 },
   };
   donutLabels: string[] = [];
-  donutColors: string[] = ['#4aaa60', '#e87722', '#f5c518', '#ff4757', '#7c3aed', '#8ea896'];
+  donutColors: string[] = ['#3F7A4E', '#D89154', '#5B7D9A', '#B5743C', '#C6DCC1'];
   donutPlotOptions: ApexPlotOptions = {
     pie: {
       donut: {
@@ -124,7 +126,7 @@ export class DashboardComponent implements OnInit {
           total: {
             show: true,
             label: 'Total',
-            color: '#8ea896',
+            color: '#7E8A77',
             fontSize: '12px',
             formatter: (w) => {
               const s = w.globals.seriesTotals.reduce((a: number, b: number) => a + b, 0);
@@ -137,24 +139,24 @@ export class DashboardComponent implements OnInit {
   };
   donutLegend: ApexLegend = {
     position: 'bottom',
-    labels: { colors: '#8ea896' },
+    labels: { colors: '#7E8A77' },
     fontSize: '11px',
   };
   donutDataLabels: ApexDataLabels = { enabled: false };
   donutTooltip: ApexTooltip = {
-    theme: 'dark',
+    theme: 'light',
     y: { formatter: (v: number) => this.formatCurrencyShort(v) },
   };
 
   // ── Sparkline options (shared) ────────────────────────────
   sparkChart: ApexChart = {
-    type: 'line',
-    height: 50,
+    type: 'area',
+    height: 40,
     sparkline: { enabled: true },
     animations: { enabled: false },
     background: 'transparent',
   };
-  sparkStroke: ApexStroke = { curve: 'smooth', width: 1.5 };
+  sparkStroke: ApexStroke = { curve: 'smooth', width: 1.6 };
   sparkTooltip: ApexTooltip = { enabled: false };
 
   get activeOrders(): Order[] {
