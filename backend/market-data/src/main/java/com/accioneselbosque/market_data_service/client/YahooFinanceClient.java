@@ -44,7 +44,7 @@ public class YahooFinanceClient {
 
         String symbolParam = String.join(",", yahooSymbols);
         String url = UriComponentsBuilder
-                .fromHttpUrl(baseUrl + "/v7/finance/quote")
+                .fromUriString(baseUrl + "/v7/finance/quote")
                 .queryParam("symbols", symbolParam)
                 .toUriString();
 
