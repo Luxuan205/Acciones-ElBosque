@@ -3,10 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
+import { MarketService } from '../../../core/services/market.service';
 import {
   OrderPreviewResponse,
   OrderResponse,
-  PlaceMarketBuyRequest
+  PlaceMarketBuyRequest,
+  StockSummary
 } from '../../../core/models';
 
 @Component({
@@ -18,15 +20,23 @@ import {
 })
 export class BuyComponent implements OnInit {
   private readonly orderSvc = inject(OrderService);
+  private readonly marketSvc = inject(MarketService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
 
   loading = signal(false);
   loadingPreview = signal(false);
+  loadingStocks = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
   preview = signal<OrderPreviewResponse | null>(null);
   result = signal<OrderResponse | null>(null);
+
+  stocks = signal<StockSummary[]>([]);
+  filteredStocks = signal<StockSummary[]>([]);
+  selectedStock = signal<StockSummary | null>(null);
+  showDropdown = signal(false);
+  stockSearch = '';
 
   form = this.fb.group({
     symbol: ['', [Validators.required, Validators.minLength(1)]],
@@ -34,10 +44,56 @@ export class BuyComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    const symbol = this.route.snapshot.queryParams['symbol'];
-    if (symbol) {
-      this.form.patchValue({ symbol });
-    }
+    this.loadingStocks.set(true);
+    this.marketSvc.getStocks().subscribe({
+      next: stocks => {
+        this.stocks.set(stocks);
+        this.filteredStocks.set(stocks.slice(0, 12));
+        this.loadingStocks.set(false);
+        const symbol = this.route.snapshot.queryParams['symbol'];
+        if (symbol) {
+          const found = stocks.find(s => s.symbol === symbol);
+          if (found) {
+            this.selectStock(found);
+          } else {
+            this.form.patchValue({ symbol });
+          }
+        }
+      },
+      error: () => this.loadingStocks.set(false)
+    });
+  }
+
+  onSearchInput(value: string): void {
+    this.stockSearch = value;
+    const q = value.toLowerCase();
+    this.filteredStocks.set(
+      this.stocks()
+        .filter(s => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q))
+        .slice(0, 12)
+    );
+    this.showDropdown.set(true);
+  }
+
+  onSearchBlur(): void {
+    setTimeout(() => this.showDropdown.set(false), 200);
+  }
+
+  selectStock(stock: StockSummary): void {
+    this.selectedStock.set(stock);
+    this.stockSearch = stock.symbol;
+    this.form.patchValue({ symbol: stock.symbol });
+    this.showDropdown.set(false);
+    this.preview.set(null);
+    this.error.set(null);
+  }
+
+  clearStock(): void {
+    this.selectedStock.set(null);
+    this.stockSearch = '';
+    this.form.patchValue({ symbol: '' });
+    this.preview.set(null);
+    this.filteredStocks.set(this.stocks().slice(0, 12));
   }
 
   onPreview(): void {
@@ -73,7 +129,10 @@ export class BuyComponent implements OnInit {
         this.success.set(`Orden de compra #${data.id} creada exitosamente.`);
         this.loading.set(false);
         this.preview.set(null);
+        this.selectedStock.set(null);
+        this.stockSearch = '';
         this.form.reset({ symbol: '', quantity: 1 });
+        this.filteredStocks.set(this.stocks().slice(0, 12));
       },
       error: () => {
         this.error.set('Error al procesar la orden de compra. Intente nuevamente.');

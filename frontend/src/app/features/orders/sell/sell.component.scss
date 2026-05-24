@@ -27,6 +27,95 @@
   }
 }
 
+// ── Stock selector ────────────────────────────────────────────
+
+.stock-selector {
+  position: relative;
+}
+
+.stock-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  box-shadow: var(--sh-2);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 200;
+
+  &--loading {
+    padding: 0.85rem 1rem;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.stock-option {
+  display: grid;
+  grid-template-columns: 64px 1fr auto auto;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.6rem 1rem;
+  background: none;
+  border: none;
+  border-bottom: 1px dashed var(--line-soft);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+
+  &:last-child { border-bottom: none; }
+  &:hover { background: var(--paper-warmer); }
+
+  &__symbol { color: var(--berry); font-weight: 600; font-size: 0.95rem; }
+  &__name { color: var(--ink-2); font-size: 0.8rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  &__price { text-align: right; font-size: 0.85rem; color: var(--ink); }
+  &__change { text-align: right; }
+}
+
+.stock-selected {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--berry-tint);
+  border: 1px solid rgba(181,69,60,0.25);
+  border-radius: var(--r-md);
+
+  &__info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__price {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+  }
+
+  &__clear {
+    background: none;
+    border: 1px solid rgba(181,69,60,0.25);
+    color: var(--ink-3);
+    cursor: pointer;
+    padding: 0.2rem 0.45rem;
+    border-radius: var(--r-sm);
+    font-size: 0.8rem;
+    line-height: 1;
+    transition: background 0.1s, color 0.1s;
+
+    &:hover { background: rgba(181,69,60,0.12); color: var(--berry); }
+  }
+}
+
+// ── Order preview ─────────────────────────────────────────────
+
 .order-preview {
   display: flex;
   flex-direction: column;

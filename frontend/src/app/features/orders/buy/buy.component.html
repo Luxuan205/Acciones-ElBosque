@@ -10,7 +10,6 @@
 
     <div class="order-layout">
 
-      <!-- Main card -->
       <div class="card order-card">
         <h1 class="serif order-card__title">Comprar una <em class="up">acción.</em></h1>
 
@@ -22,18 +21,72 @@
         }
 
         <form [formGroup]="form" (ngSubmit)="onPreview()">
+
+          <!-- Stock selector -->
           <div class="form-group">
-            <label class="label" for="symbol">Símbolo de la acción</label>
-            <input
-              id="symbol"
-              type="text"
-              formControlName="symbol"
-              class="form-control"
-              placeholder="Ej: AAPL, MSFT, GOOGL"
-              autocomplete="off"
-            />
+            <label class="label">Acción</label>
+
+            @if (selectedStock()) {
+              <div class="stock-selected">
+                <div class="stock-selected__info">
+                  <span class="serif" style="font-size:1.05rem;font-weight:600;color:var(--moss)">
+                    {{ selectedStock()!.symbol }}
+                  </span>
+                  <span class="muted" style="font-size:0.82rem">{{ selectedStock()!.name }}</span>
+                </div>
+                <div class="stock-selected__price">
+                  <span class="num" style="font-size:0.95rem">
+                    {{ selectedStock()!.currentPrice | currency:'USD':'symbol':'1.2-2' }}
+                  </span>
+                  <span class="num tiny"
+                        [class.up]="selectedStock()!.dayChangePct >= 0"
+                        [class.down]="selectedStock()!.dayChangePct < 0">
+                    {{ selectedStock()!.dayChangePct >= 0 ? '+' : '' }}{{ selectedStock()!.dayChangePct | number:'1.2-2' }}%
+                  </span>
+                </div>
+                <button type="button" class="stock-selected__clear" (click)="clearStock()" aria-label="Cambiar acción">✕</button>
+              </div>
+            } @else {
+              <div class="stock-selector">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar por nombre o símbolo (Ej: AAPL, Apple...)"
+                  [value]="stockSearch"
+                  (input)="onSearchInput($any($event.target).value)"
+                  (focus)="showDropdown.set(true)"
+                  (blur)="onSearchBlur()"
+                  autocomplete="off"
+                />
+                @if (loadingStocks()) {
+                  <div class="stock-dropdown stock-dropdown--loading">
+                    <span class="spinner spinner--sm"></span>
+                    <span class="muted tiny" style="margin-left:0.5rem">Cargando acciones...</span>
+                  </div>
+                } @else if (showDropdown() && filteredStocks().length > 0) {
+                  <div class="stock-dropdown" role="listbox">
+                    @for (s of filteredStocks(); track s.symbol) {
+                      <button type="button" class="stock-option" role="option"
+                              (mousedown)="selectStock(s)">
+                        <span class="stock-option__symbol serif">{{ s.symbol }}</span>
+                        <span class="stock-option__name muted">{{ s.name }}</span>
+                        <span class="stock-option__price num">
+                          {{ s.currentPrice | currency:'USD':'symbol':'1.2-2' }}
+                        </span>
+                        <span class="stock-option__change num tiny"
+                              [class.up]="s.dayChangePct >= 0"
+                              [class.down]="s.dayChangePct < 0">
+                          {{ s.dayChangePct >= 0 ? '+' : '' }}{{ s.dayChangePct | number:'1.2-2' }}%
+                        </span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+
             @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
-              <span class="form-error">El símbolo es requerido.</span>
+              <span class="form-error">Selecciona una acción.</span>
             }
           </div>
 
