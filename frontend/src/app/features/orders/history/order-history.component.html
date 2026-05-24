@@ -1,113 +1,124 @@
-<div class="container">
-  <div class="page-header">
-    <h1>Historial de Órdenes</h1>
-    <div class="flex-between gap-1">
-      <a routerLink="/orders/buy" class="btn-primary btn-sm">Nueva compra</a>
-      <a routerLink="/orders/sell" class="btn-danger btn-sm">Nueva venta</a>
-    </div>
-  </div>
+<div class="history-page">
+  <div class="container">
 
-  @if (cancelError()) {
-    <div class="alert alert-danger">{{ cancelError() }}</div>
-  }
-  @if (cancelSuccess()) {
-    <div class="alert alert-success">{{ cancelSuccess() }}</div>
-  }
-  @if (error()) {
-    <div class="alert alert-danger">
-      {{ error() }}
-      <button class="btn-secondary btn-sm" style="margin-left: 1rem;" (click)="loadOrders()">Reintentar</button>
-    </div>
-  }
-
-  @if (loading()) {
-    <div class="loading-container">
-      <span class="spinner"></span>
-      <span class="text-muted">Cargando órdenes...</span>
-    </div>
-  } @else {
-    <div class="filters-bar mb-3">
-      <div class="filter-group">
-        <span class="text-muted">Estado:</span>
-        @for (s of statusOptions; track s) {
-          <button
-            class="btn-sm"
-            [class.btn-primary]="filterStatus() === s"
-            [class.btn-secondary]="filterStatus() !== s"
-            (click)="setFilterStatus(s)"
-          >{{ s }}</button>
-        }
+    <!-- Page header -->
+    <div class="page-head">
+      <div>
+        <p class="tiny muted" style="margin-bottom:0.35rem">Registro de actividad</p>
+        <h1 class="serif history-title">Historial de <em class="up">órdenes.</em></h1>
       </div>
-      <div class="filter-group mt-2">
-        <span class="text-muted">Tipo:</span>
-        @for (t of typeOptions; track t) {
-          <button
-            class="btn-sm"
-            [class.btn-primary]="filterType() === t"
-            [class.btn-secondary]="filterType() !== t"
-            (click)="setFilterType(t)"
-          >{{ t }}</button>
-        }
+      <div class="page-head__actions">
+        <a routerLink="/orders/buy" class="btn-primary btn-sm">Nueva compra</a>
+        <a routerLink="/orders/sell" class="btn-danger btn-sm">Nueva venta</a>
       </div>
     </div>
 
-    @if (filteredOrders().length === 0) {
-      <div class="card card--empty">
-        <p class="text-muted">No hay órdenes que coincidan con los filtros seleccionados.</p>
-        <a routerLink="/orders/buy" class="btn-primary btn-sm mt-2">Realizar primera compra</a>
+    @if (cancelError()) {
+      <div class="alert alert-danger">{{ cancelError() }}</div>
+    }
+    @if (cancelSuccess()) {
+      <div class="alert alert-success">{{ cancelSuccess() }}</div>
+    }
+    @if (error()) {
+      <div class="alert alert-danger">
+        {{ error() }}
+        <button class="btn-ghost btn-sm" style="margin-left:1rem" (click)="loadOrders()">Reintentar</button>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-container">
+        <span class="spinner"></span>
+        <span class="muted">Cargando órdenes...</span>
       </div>
     } @else {
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Símbolo</th>
-              <th>Tipo</th>
-              <th>Estado</th>
-              <th>Cantidad</th>
-              <th>Precio estimado</th>
-              <th>Comisión</th>
-              <th>
-                <button class="sort-btn" (click)="toggleSort()">
-                  Fecha {{ sortDesc() ? '↓' : '↑' }}
-                </button>
-              </th>
-              <th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (order of filteredOrders(); track order.id) {
-              <tr>
-                <td class="text-cyan">#{{ order.id }}</td>
-                <td><strong>{{ order.symbol }}</strong></td>
-                <td>{{ order.orderType }}</td>
-                <td>
-                  <span [class]="statusBadge(order.status)">{{ order.status }}</span>
-                </td>
-                <td>{{ order.quantity }}</td>
-                <td>{{ formatCOP(order.estimatedPrice) }}</td>
-                <td class="text-red">{{ formatCOP(order.commission) }}</td>
-                <td class="text-muted">{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
-                <td>
-                  @if (canCancel(order)) {
-                    <button
-                      class="btn-danger btn-sm"
-                      (click)="onCancel(order)"
-                    >Cancelar</button>
-                  } @else {
-                    <span class="text-muted">—</span>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+
+      <!-- Filters -->
+      <div class="history-filters">
+        <div class="filter-group">
+          <span class="tiny muted">Estado:</span>
+          @for (s of statusOptions; track s) {
+            <button
+              class="btn-sm"
+              [class.btn-primary]="filterStatus() === s"
+              [class.btn-ghost]="filterStatus() !== s"
+              (click)="setFilterStatus(s)"
+            >{{ s }}</button>
+          }
+        </div>
+        <div class="filter-group">
+          <span class="tiny muted">Tipo:</span>
+          @for (t of typeOptions; track t) {
+            <button
+              class="btn-sm"
+              [class.btn-primary]="filterType() === t"
+              [class.btn-ghost]="filterType() !== t"
+              (click)="setFilterType(t)"
+            >{{ t }}</button>
+          }
+        </div>
       </div>
 
-      <p class="text-muted mt-2">
-        Mostrando {{ filteredOrders().length }} de {{ orders().length }} órdenes.
-      </p>
+      @if (filteredOrders().length === 0) {
+        <div class="card card--empty">
+          <p class="muted">No hay órdenes que coincidan con los filtros seleccionados.</p>
+          <a routerLink="/orders/buy" class="btn-primary btn-sm" style="margin-top:1rem;display:inline-flex">Realizar primera compra</a>
+        </div>
+      } @else {
+        <div class="card card--flush">
+          <div class="overflow-x">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Símbolo</th>
+                  <th>Tipo</th>
+                  <th>Estado</th>
+                  <th>Cantidad</th>
+                  <th>Precio est.</th>
+                  <th>Comisión</th>
+                  <th>
+                    <button class="sort-btn" (click)="toggleSort()">
+                      Fecha {{ sortDesc() ? '↓' : '↑' }}
+                    </button>
+                  </th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (order of filteredOrders(); track order.id) {
+                  <tr>
+                    <td class="num muted">#{{ order.id }}</td>
+                    <td><strong class="serif" style="font-size:1.05rem">{{ order.symbol }}</strong></td>
+                    <td>
+                      <span [class]="order.orderType.includes('BUY') ? 'tag-moss' : 'tag-berry'">
+                        {{ order.orderType }}
+                      </span>
+                    </td>
+                    <td><span [class]="statusBadge(order.status)">{{ order.status }}</span></td>
+                    <td class="num">{{ order.quantity }}</td>
+                    <td class="num">{{ formatCOP(order.estimatedPrice) }}</td>
+                    <td class="num down">{{ formatCOP(order.commission) }}</td>
+                    <td class="num tiny muted">{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td>
+                      @if (canCancel(order)) {
+                        <button class="btn-danger btn-sm" (click)="onCancel(order)">Cancelar</button>
+                      } @else {
+                        <span class="muted">—</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <p class="muted" style="font-size:0.82rem;margin-top:0.75rem">
+          Mostrando {{ filteredOrders().length }} de {{ orders().length }} órdenes.
+        </p>
+      }
     }
-  }
+
+  </div>
 </div>
