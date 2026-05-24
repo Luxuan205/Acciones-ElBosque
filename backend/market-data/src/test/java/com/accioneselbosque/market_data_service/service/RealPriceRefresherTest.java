@@ -73,7 +73,7 @@ class RealPriceRefresherTest {
         assertThat(snap.getDayChangePct()).isEqualByComparingTo("1.0363");
         assertThat(snap.getVolume()).isEqualTo(5_000_000L);
         verify(snapshotRepository).save(snap);
-        verify(intradayRepository).save(any(IntradayPricePoint.class));
+        verify(intradayRepository).saveAndFlush(any(IntradayPricePoint.class));
     }
 
     @Test

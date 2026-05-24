@@ -97,7 +97,7 @@ public class RealPriceRefresher {
                 point.setTimestamp(now);
                 point.setPrice(quote.price());
                 point.setVolume(quote.volume());
-                intradayRepository.save(point);
+                intradayRepository.saveAndFlush(point);
             } catch (DataIntegrityViolationException e) {
                 log.warn("RealPriceRefresher: duplicate intraday point for {} at {}, skipping",
                         internalSymbol, now);
