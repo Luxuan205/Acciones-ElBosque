@@ -74,11 +74,11 @@ export class DashboardComponent implements OnInit {
     type: 'gradient',
     gradient: {
       shadeIntensity: 1,
-      opacityFrom: 0.2,
+      opacityFrom: 0.22,
       opacityTo: 0.0,
       stops: [0, 100],
       colorStops: [
-        { offset: 0, color: '#3F7A4E', opacity: 0.2 },
+        { offset: 0, color: '#3F7A4E', opacity: 0.22 },
         { offset: 100, color: '#3F7A4E', opacity: 0 },
       ],
     },
