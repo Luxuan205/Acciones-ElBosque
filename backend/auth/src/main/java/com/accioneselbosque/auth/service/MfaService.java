@@ -10,6 +10,10 @@ import com.accioneselbosque.auth.model.OtpCode;
 import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.auth.repository.MfaSessionRepository;
 import com.accioneselbosque.auth.repository.OtpCodeRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,7 @@ public class MfaService {
     private final InvestorRepository investorRepository;
     private final JwtService jwtService;
     private final MailService mailService;
+    private final AuditService auditService;
 
     @Value("${app.login.otp-ttl-minutes:5}")
     private int otpTtlMinutes;
@@ -57,6 +62,12 @@ public class MfaService {
             // CRIT-2: Invalidate session immediately on first wrong OTP to prevent brute-force
             session.setExpiresAt(LocalDateTime.now().minusSeconds(1));
             mfaSessionRepository.save(session);
+            auditService.record(AuditEventRecord.builder()
+                    .eventType(AuditEventType.AUTH_MFA_FAILED)
+                    .investorId(session.getInvestorId())
+                    .result(AuditResult.FAILURE)
+                    .detail("invalid OTP, session invalidated")
+                    .build());
             throw new InvalidOtpException();
         }
 
@@ -76,6 +87,12 @@ public class MfaService {
 
         // Emit JWT
         String accessToken = jwtService.generateToken(session.getInvestorId(), role);
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.AUTH_SUCCESS)
+                .investorId(session.getInvestorId())
+                .result(AuditResult.SUCCESS)
+                .detail("role=" + role)
+                .build());
         return new MfaVerifyResponse(accessToken, role);
     }
 

@@ -6,6 +6,10 @@ import com.accioneselbosque.auth.model.Investor;
 import com.accioneselbosque.auth.model.ProfileChangeLog;
 import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.auth.repository.ProfileChangeLogRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -18,6 +22,7 @@ public class PasswordChangeService {
     private final InvestorRepository investorRepository;
     private final ProfileChangeLogRepository changeLogRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     @Transactional
     public void changePassword(Long investorId, ChangePasswordRequest request) {
@@ -41,5 +46,12 @@ public class PasswordChangeService {
         log.setOldValue("[REDACTED]");
         log.setNewValue("[REDACTED]");
         changeLogRepository.save(log);
+
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.PASSWORD_CHANGED)
+                .investorId(investorId)
+                .performedBy(investorId)
+                .result(AuditResult.SUCCESS)
+                .build());
     }
 }

@@ -3,6 +3,10 @@ package com.accioneselbosque.auth.service;
 import com.accioneselbosque.auth.dto.*;
 import com.accioneselbosque.auth.model.*;
 import com.accioneselbosque.auth.repository.*;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +20,7 @@ public class ProfileService {
     private final InvestorRepository investorRepository;
     private final InvestorPreferencesRepository preferencesRepository;
     private final ProfileChangeLogRepository changeLogRepository;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public ProfileResponse getProfile(Long investorId) {
@@ -29,16 +34,28 @@ public class ProfileService {
         Investor investor = investorRepository.findById(investorId)
                 .orElseThrow(() -> new IllegalArgumentException("Investor not found"));
 
+        StringBuilder changes = new StringBuilder();
         if (request.fullName() != null && !request.fullName().equals(investor.getFullName())) {
             logChange(investorId, "fullName", investor.getFullName(), request.fullName());
+            changes.append("fullName ");
             investor.setFullName(request.fullName());
         }
         if (request.phone() != null && !request.phone().equals(investor.getPhone())) {
             logChange(investorId, "phone", investor.getPhone(), request.phone());
+            changes.append("phone ");
             investor.setPhone(request.phone());
         }
 
         investorRepository.save(investor);
+        if (!changes.isEmpty()) {
+            auditService.record(AuditEventRecord.builder()
+                    .eventType(AuditEventType.PROFILE_UPDATED)
+                    .investorId(investorId)
+                    .performedBy(investorId)
+                    .result(AuditResult.SUCCESS)
+                    .detail("fields: " + changes.toString().trim())
+                    .build());
+        }
         return mapToProfileResponse(investor);
     }
 

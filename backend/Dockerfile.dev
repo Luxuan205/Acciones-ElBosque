@@ -1,0 +1,13 @@
+FROM maven:3.9-eclipse-temurin-21
+
+WORKDIR /workspace
+
+# Copiar todo el proyecto backend (módulos + pom padre)
+COPY . .
+
+# Compilar todos los módulos y empaquetar el módulo app
+RUN mvn clean package -Dmaven.test.skip=true -pl app -am
+
+EXPOSE 8080
+
+CMD ["java", "-jar", "app/target/app-0.0.1-SNAPSHOT.jar"]

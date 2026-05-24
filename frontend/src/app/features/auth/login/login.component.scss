@@ -77,14 +77,13 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 52px;
-    height: 52px;
-    background: linear-gradient(135deg, #4aaa60, #e87722);
-    border-radius: 14px;
-    font-size: 1.4rem;
-    color: #fff;
     margin-bottom: 1.25rem;
-    box-shadow: 0 0 24px rgba(74,170,96,0.35);
+
+    img {
+      height: 56px;
+      width: auto;
+      display: block;
+    }
   }
 
   &__footer {

@@ -17,6 +17,10 @@ import com.accioneselbosque.orders.model.OrderStatus;
 import com.accioneselbosque.orders.model.OrderType;
 import com.accioneselbosque.orders.repository.BalanceReservationRepository;
 import com.accioneselbosque.orders.repository.OrderRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +40,7 @@ public class MarketOrderService {
     private final OrderRepository orderRepository;
     private final BalanceReservationRepository balanceReservationRepository;
     private final CommissionCalculatorService commissionCalculatorService;
+    private final AuditService auditService;
 
     private static final int MAX_QUEUED_ORDERS = 10;
 
@@ -108,6 +113,16 @@ public class MarketOrderService {
 
         String message = status == OrderStatus.QUEUED
                 ? "El mercado está cerrado. La orden se ejecutará en la próxima apertura." : null;
+
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.ORDER_CREATED)
+                .investorId(investorId)
+                .performedBy(investorId)
+                .referenceType("ORDER")
+                .referenceId(order.getId())
+                .result(AuditResult.SUCCESS)
+                .detail("MARKET_BUY " + req.symbol() + " x" + req.quantity() + " status=" + status.name())
+                .build());
 
         return new OrderResponse(order.getId(), status.name(), req.symbol(), req.quantity(), breakdown, order.getCreatedAt(), message);
     }

@@ -14,10 +14,6 @@ spring:
   cache:
     type: simple
 
-  jackson:
-    serialization:
-      write-dates-as-timestamps: false
-
   jpa:
     hibernate:
       ddl-auto: none

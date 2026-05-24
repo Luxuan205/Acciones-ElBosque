@@ -15,6 +15,10 @@ import com.accioneselbosque.auth.model.InvestorRole;
 import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.auth.repository.InvestorSpecification;
 import com.accioneselbosque.auth.repository.MfaSessionRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -33,11 +37,12 @@ public class AdminUserService {
     private final MfaSessionRepository mfaSessionRepository;
     private final VerificationTokenService verificationTokenService;
     private final MailService mailService;
+    private final AuditService auditService;
 
     @Transactional(readOnly = true)
     public PagedUsersResponse searchUsers(String email, String name, String status,
                                            String subscriptionType, int page, int size) {
-        Specification<Investor> spec = Specification.where((Specification<Investor>) null);
+        Specification<Investor> spec = (root, query, cb) -> cb.conjunction();
         if (email != null && !email.isBlank()) {
             spec = spec.and(InvestorSpecification.hasEmailContaining(email));
         }
@@ -95,12 +100,26 @@ public class AdminUserService {
             }
         }
 
+        AccountStatus prevStatus = investor.getAccountStatus();
         investor.setAccountStatus(newStatus);
         if (newStatus == AccountStatus.SUSPENDED) {
             mfaSessionRepository.deleteByInvestorId(userId);
         }
 
         investorRepository.save(investor);
+
+        AuditEventType eventType = newStatus == AccountStatus.SUSPENDED
+                ? AuditEventType.USER_SUSPENDED
+                : (prevStatus == AccountStatus.SUSPENDED ? AuditEventType.USER_UNSUSPENDED : null);
+        if (eventType != null) {
+            auditService.record(AuditEventRecord.builder()
+                    .eventType(eventType)
+                    .investorId(userId)
+                    .performedBy(adminId)
+                    .result(AuditResult.SUCCESS)
+                    .detail(prevStatus + " -> " + newStatus + " (reason: " + req.reason() + ")")
+                    .build());
+        }
         return toAdminUserDto(investor);
     }
 
@@ -125,8 +144,16 @@ public class AdminUserService {
             mfaSessionRepository.deleteByInvestorId(userId);
         }
 
+        InvestorRole prevRole = investor.getRole();
         investor.setRole(req.newRole());
         investorRepository.save(investor);
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.ROLE_CHANGED)
+                .investorId(userId)
+                .performedBy(adminId)
+                .result(AuditResult.SUCCESS)
+                .detail(prevRole + " -> " + req.newRole() + " (reason: " + req.reason() + ")")
+                .build());
         return toAdminUserDto(investor);
     }
 
@@ -136,6 +163,12 @@ public class AdminUserService {
                 .orElseThrow(() -> new UserNotFoundException(userId));
         var token = verificationTokenService.createToken(investor);
         mailService.sendPasswordResetEmail(investor.getEmail(), token.getToken());
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.ADMIN_INITIATED_PASSWORD_RESET)
+                .investorId(userId)
+                .performedBy(adminId)
+                .result(AuditResult.SUCCESS)
+                .build());
     }
 
     private AdminUserDto toAdminUserDto(Investor investor) {

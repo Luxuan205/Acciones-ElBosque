@@ -12,6 +12,10 @@ import com.accioneselbosque.auth.model.OtpCode;
 import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.auth.repository.MfaSessionRepository;
 import com.accioneselbosque.auth.repository.OtpCodeRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -35,6 +39,7 @@ public class LoginService {
     private final MfaSessionRepository mfaSessionRepository;
     private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
+    private final AuditService auditService;
 
     // Dummy bcrypt hash for constant-time verification (prevents email enumeration timing attack)
     private static final String DUMMY_HASH = "$2a$12$dummyhashfortimingXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX";
@@ -61,6 +66,11 @@ public class LoginService {
             // CRIT-1: Perform constant-time verification even if email not found
             // to prevent email enumeration timing attacks (bcrypt takes ~100ms)
             passwordEncoder.matches(req.password(), DUMMY_HASH);
+            auditService.record(AuditEventRecord.builder()
+                    .eventType(AuditEventType.AUTH_FAILURE)
+                    .result(AuditResult.FAILURE)
+                    .detail("unknown email: " + req.email())
+                    .build());
             throw new InvalidCredentialsException();
         }
 
@@ -90,11 +100,26 @@ public class LoginService {
         if (!passwordEncoder.matches(req.password(), investor.getPasswordHash())) {
             int attempts = investor.getFailedAttempts() + 1;
             investor.setFailedAttempts(attempts);
-            if (attempts >= maxAttempts) {
+            boolean nowLocked = attempts >= maxAttempts;
+            if (nowLocked) {
                 investor.setAccountStatus(AccountStatus.BLOCKED);
                 investor.setLockedUntil(LocalDateTime.now().plusMinutes(lockMinutes));
             }
             investorRepository.save(investor);
+            auditService.record(AuditEventRecord.builder()
+                    .eventType(AuditEventType.AUTH_FAILURE)
+                    .investorId(investor.getId())
+                    .result(AuditResult.FAILURE)
+                    .detail("wrong password, attempts=" + attempts)
+                    .build());
+            if (nowLocked) {
+                auditService.record(AuditEventRecord.builder()
+                        .eventType(AuditEventType.ACCOUNT_LOCKED)
+                        .investorId(investor.getId())
+                        .result(AuditResult.SUCCESS)
+                        .detail("locked for " + lockMinutes + " minutes after " + maxAttempts + " failed attempts")
+                        .build());
+            }
             throw new InvalidCredentialsException();
         }
 

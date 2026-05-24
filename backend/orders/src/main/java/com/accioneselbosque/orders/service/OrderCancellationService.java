@@ -13,6 +13,10 @@ import com.accioneselbosque.orders.model.TitleReservation;
 import com.accioneselbosque.orders.repository.BalanceReservationRepository;
 import com.accioneselbosque.orders.repository.OrderRepository;
 import com.accioneselbosque.orders.repository.TitleReservationRepository;
+import com.accioneselbosque.audit.model.AuditEventRecord;
+import com.accioneselbosque.audit.model.AuditEventType;
+import com.accioneselbosque.audit.model.AuditResult;
+import com.accioneselbosque.audit.service.AuditService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +34,7 @@ public class OrderCancellationService {
     private final OrderRepository orderRepository;
     private final BalanceReservationRepository balanceReservationRepository;
     private final TitleReservationRepository titleReservationRepository;
+    private final AuditService auditService;
 
     public CancellationResponse cancel(Long investorId, Long orderId, String reason) {
         var order = orderRepository.findById(orderId)
@@ -71,6 +76,17 @@ public class OrderCancellationService {
             });
             titlesReleased = res.map(TitleReservation::getQuantity).orElse(0);
         }
+
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.ORDER_CANCELLED)
+                .investorId(investorId)
+                .performedBy(investorId)
+                .referenceType("ORDER")
+                .referenceId(orderId)
+                .result(AuditResult.SUCCESS)
+                .detail(order.getOrderType().name() + " " + order.getSymbol() + " from " + prev.name()
+                        + " (reason: " + reason + ")")
+                .build());
 
         return new CancellationResponse(orderId, prev.name(), "CANCELLED", amountReleased, titlesReleased, LocalDateTime.now());
     }

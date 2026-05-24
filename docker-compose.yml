@@ -34,7 +34,7 @@ services:
   app:
     build:
       context: ./backend
-      dockerfile: app/Dockerfile.dev
+      dockerfile: Dockerfile.dev
     container_name: acciones-backend
     depends_on:
       postgres:
@@ -65,7 +65,7 @@ services:
       - frontend_node_modules:/app/node_modules
     ports:
       - "4200:4200"
-    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200 --disable-host-check --poll 500"
+    command: sh -c "npm install && npx ng serve --host 0.0.0.0 --port 4200 --disable-host-check"
     networks:
       - acciones-network
 
