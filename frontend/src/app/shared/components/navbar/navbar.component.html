@@ -1,8 +1,10 @@
 <nav class="navbar" role="navigation" aria-label="Navegación principal">
   <div class="navbar__container">
-    <!-- Logo -->
+    <!-- Brand -->
     <a class="navbar__brand" routerLink="/dashboard" aria-label="Acciones El Bosque — inicio">
-      <img class="navbar__logo-img" src="unbosque-logo.svg" alt="Universidad El Bosque" />
+      <img class="navbar__logo-img" src="logo.png" alt="Universidad El Bosque" />
+      <span class="navbar__divider" aria-hidden="true"></span>
+      <span class="navbar__wordmark">Acciones <em>El Bosque</em></span>
     </a>
 
     <!-- Desktop Nav Links -->
@@ -13,32 +15,16 @@
             Dashboard
           </a>
         </li>
-        <li>
-          <a routerLink="/market" routerLinkActive="active">Mercado</a>
-        </li>
-        <li>
-          <a routerLink="/portfolio/positions" routerLinkActive="active">Portafolio</a>
-        </li>
-        <li>
-          <a routerLink="/orders/history" routerLinkActive="active">Órdenes</a>
-        </li>
-        <li>
-          <a routerLink="/notifications" routerLinkActive="active">Alertas</a>
-        </li>
-        <li>
-          <a routerLink="/watchlist" routerLinkActive="active">Watchlist</a>
-        </li>
+        <li><a routerLink="/market" routerLinkActive="active">Mercado</a></li>
+        <li><a routerLink="/portfolio/positions" routerLinkActive="active">Portafolio</a></li>
+        <li><a routerLink="/orders/history" routerLinkActive="active">Órdenes</a></li>
+        <li><a routerLink="/notifications" routerLinkActive="active">Alertas</a></li>
+        <li><a routerLink="/watchlist" routerLinkActive="active">Watchlist</a></li>
 
-        <!-- Admin Dropdown -->
         @if (isAdmin) {
           <li class="navbar__dropdown" [class.open]="adminOpen()">
-            <button
-              class="navbar__dropdown-toggle"
-              type="button"
-              [attr.aria-expanded]="adminOpen()"
-              aria-haspopup="true"
-              (click)="toggleAdmin()"
-            >
+            <button class="navbar__dropdown-toggle" type="button"
+              [attr.aria-expanded]="adminOpen()" aria-haspopup="true" (click)="toggleAdmin()">
               Admin
               <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
                 <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -54,16 +40,10 @@
           </li>
         }
 
-        <!-- Broker Dropdown -->
         @if (isBroker && !isAdmin) {
           <li class="navbar__dropdown" [class.open]="brokerOpen()">
-            <button
-              class="navbar__dropdown-toggle"
-              type="button"
-              [attr.aria-expanded]="brokerOpen()"
-              aria-haspopup="true"
-              (click)="toggleBroker()"
-            >
+            <button class="navbar__dropdown-toggle" type="button"
+              [attr.aria-expanded]="brokerOpen()" aria-haspopup="true" (click)="toggleBroker()">
               Clientes
               <svg class="chevron" width="10" height="6" viewBox="0 0 10 6" fill="none" aria-hidden="true">
                 <path d="M1 1L5 5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
@@ -81,36 +61,21 @@
     <!-- Right Section -->
     <div class="navbar__right">
       @if (loggedIn) {
-        <a
-          class="navbar__icon-btn"
-          routerLink="/watchlist"
-          aria-label="Watchlist"
-          title="Watchlist"
-        >
+        <a class="navbar__icon-btn" routerLink="/watchlist" aria-label="Watchlist" title="Watchlist">
           <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M8 1.5L9.8 5.6L14.3 6.1L11.1 9.1L12 13.5L8 11.3L4 13.5L4.9 9.1L1.7 6.1L6.2 5.6L8 1.5Z"
               stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/>
           </svg>
         </a>
 
-        <!-- User Menu -->
         <div class="navbar__user" [class.open]="userMenuOpen()">
-          <button
-            class="navbar__avatar"
-            type="button"
-            [attr.aria-expanded]="userMenuOpen()"
-            aria-haspopup="true"
-            aria-label="Menú de usuario"
-            (click)="toggleUserMenu()"
-          >
+          <button class="navbar__avatar" type="button"
+            [attr.aria-expanded]="userMenuOpen()" aria-haspopup="true"
+            aria-label="Menú de usuario" (click)="toggleUserMenu()">
             {{ profile()?.fullName?.charAt(0) ?? 'U' }}
           </button>
-          <div
-            class="navbar__user-menu"
-            role="menu"
-            [class.open]="userMenuOpen()"
-            (click)="closeAll()"
-          >
+          <div class="navbar__user-menu" role="menu"
+            [class.open]="userMenuOpen()" (click)="closeAll()">
             @if (profile()) {
               <div class="navbar__user-name" role="none">{{ profile()!.fullName }}</div>
               <div class="navbar__user-email" role="none">{{ profile()!.email }}</div>
@@ -125,18 +90,13 @@
           </div>
         </div>
       } @else {
-        <a class="btn-outline btn-sm" routerLink="/login">Iniciar Sesión</a>
+        <a class="btn-ghost btn-sm" routerLink="/login">Iniciar Sesión</a>
         <a class="btn-primary btn-sm" routerLink="/register">Registrarse</a>
       }
 
-      <!-- Mobile toggle -->
-      <button
-        class="navbar__mobile-toggle"
-        type="button"
-        [attr.aria-expanded]="mobileOpen()"
-        aria-label="Abrir menú de navegación"
-        (click)="toggleMobile()"
-      >
+      <button class="navbar__mobile-toggle" type="button"
+        [attr.aria-expanded]="mobileOpen()" aria-label="Abrir menú de navegación"
+        (click)="toggleMobile()">
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
         <span aria-hidden="true"></span>
@@ -144,7 +104,6 @@
     </div>
   </div>
 
-  <!-- Mobile Menu -->
   @if (mobileOpen()) {
     <nav class="navbar__mobile-menu" aria-label="Menú móvil" (click)="toggleMobile()">
       @if (loggedIn) {
@@ -155,12 +114,8 @@
         <a routerLink="/notifications">Alertas</a>
         <a routerLink="/watchlist">Watchlist</a>
         <a routerLink="/profile">Perfil</a>
-        @if (isAdmin) {
-          <a routerLink="/admin/dashboard">Admin</a>
-        }
-        @if (isBroker) {
-          <a routerLink="/broker/clients">Clientes</a>
-        }
+        @if (isAdmin) { <a routerLink="/admin/dashboard">Admin</a> }
+        @if (isBroker) { <a routerLink="/broker/clients">Clientes</a> }
         <button class="logout-btn" type="button" (click)="logout()">Cerrar Sesión</button>
       } @else {
         <a routerLink="/login">Iniciar Sesión</a>
