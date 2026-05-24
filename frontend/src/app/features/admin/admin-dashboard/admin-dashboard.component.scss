@@ -4,8 +4,8 @@
 }
 
 .period-btn {
-  background: var(--bg-hover);
-  color: var(--text-secondary);
+  background: var(--paper-warmer);
+  color: var(--ink-2);
   border: 1px solid transparent;
   padding: 0.4rem 1rem;
   border-radius: 6px;
@@ -14,21 +14,21 @@
   transition: all 0.2s;
 
   &.active {
-    background: var(--accent-green);
-    color: var(--bg-primary);
+    background: var(--moss);
+    color: var(--paper);
     font-weight: 600;
   }
 
   &:hover:not(.active) {
-    border-color: var(--accent-green);
-    color: var(--text-primary);
+    border-color: var(--moss);
+    color: var(--ink);
   }
 }
 
 .link-card {
   display: block;
   padding: 1rem 1.25rem;
-  background: var(--bg-hover);
+  background: var(--paper-warmer);
   border: 1px solid transparent;
   border-radius: 8px;
   cursor: pointer;
@@ -36,17 +36,17 @@
   text-decoration: none;
 
   &:hover {
-    border-color: var(--accent-green);
+    border-color: var(--moss);
   }
 
   &__label {
-    color: var(--accent-green);
+    color: var(--moss);
     font-weight: 600;
     margin-bottom: 0.25rem;
   }
 
   &__desc {
-    color: var(--text-secondary);
+    color: var(--ink-2);
     font-size: 0.85rem;
   }
 }

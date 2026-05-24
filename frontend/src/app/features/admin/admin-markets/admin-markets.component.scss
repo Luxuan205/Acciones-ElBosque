@@ -9,18 +9,18 @@
   gap: 0.4rem;
   padding: 0.35rem 0.75rem;
   border-radius: 6px;
-  border: 1px solid var(--bg-hover);
-  background: var(--bg-hover);
+  border: 1px solid var(--paper-warmer);
+  background: var(--paper-warmer);
   cursor: pointer;
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: var(--ink-2);
   transition: all 0.2s;
   user-select: none;
 
   &.selected {
-    border-color: var(--accent-green);
+    border-color: var(--moss);
     background: rgba(0, 212, 255, 0.1);
-    color: var(--accent-green);
+    color: var(--moss);
   }
 }
 

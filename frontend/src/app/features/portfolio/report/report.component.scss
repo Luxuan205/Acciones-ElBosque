@@ -11,22 +11,22 @@
 
 .period-btn {
   padding: 0.4rem 1rem;
-  border: 1px solid var(--text-muted);
+  border: 1px solid var(--ink-3);
   border-radius: 4px;
   background: transparent;
-  color: var(--text-secondary);
+  color: var(--ink-2);
   cursor: pointer;
   font-size: 0.9rem;
   transition: all 0.2s ease;
 
   &:hover {
-    border-color: var(--accent-green);
-    color: var(--text-primary);
+    border-color: var(--moss);
+    color: var(--ink);
   }
 
   &.active {
-    background: var(--accent-green);
-    border-color: var(--accent-green);
+    background: var(--moss);
+    border-color: var(--moss);
     color: #0a0e1a;
     font-weight: 600;
   }

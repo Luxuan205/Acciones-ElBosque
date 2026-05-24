@@ -4,14 +4,14 @@
   align-items: center;
   justify-content: center;
   padding: 2rem 1rem;
-  background: var(--bg-primary);
+  background: var(--paper);
 }
 
 .auth-card {
   width: 100%;
   max-width: 440px;
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
+  background: var(--card);
+  border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   padding: 2.25rem;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
@@ -21,7 +21,7 @@
     margin-bottom: 2rem;
 
     h1 { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.4rem; }
-    p  { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
+    p  { font-size: 0.9rem; color: var(--ink-3); margin: 0; }
   }
 
   &__footer {
@@ -36,7 +36,7 @@
       font-size: 1rem;
       font-weight: 600;
       border-radius: var(--radius-md);
-      background: linear-gradient(135deg, var(--accent-green), #0099cc);
+      background: linear-gradient(135deg, var(--moss), #0099cc);
       color: #0a0e1a;
       border: none;
       cursor: pointer;
@@ -54,7 +54,7 @@
   display: flex;
   justify-content: center;
 
-  &.success { color: var(--accent-green); }
-  &.error   { color: var(--accent-red); }
-  &.loading { color: var(--accent-green); }
+  &.success { color: var(--moss); }
+  &.error   { color: var(--berry); }
+  &.loading { color: var(--moss); }
 }
