@@ -1,68 +1,75 @@
-<div class="container">
-  <div class="page-header">
-    <h1>Venta de Acciones</h1>
-    <a routerLink="/orders/history" class="btn-secondary btn-sm">Ver historial</a>
-  </div>
+<div class="order-page">
+  <div class="container">
 
-  <div class="order-form">
-    @if (error()) {
-      <div class="alert alert-danger">{{ error() }}</div>
-    }
+    <!-- Breadcrumb -->
+    <nav class="order-breadcrumb tiny" aria-label="Ruta de navegación">
+      <a routerLink="/orders/history" class="muted">Órdenes</a>
+      <span class="muted"> / </span>
+      <span>Vender a precio de mercado</span>
+    </nav>
 
-    @if (success()) {
-      <div class="alert alert-success">{{ success() }}</div>
-    }
+    <div class="order-layout">
 
-    <div class="card">
-      <h2 class="card__title">Orden de Mercado — Venta</h2>
+      <!-- Main card -->
+      <div class="card order-card">
+        <h1 class="serif order-card__title">Cosechar una <em class="down">posición.</em></h1>
 
-      <form [formGroup]="form" (ngSubmit)="onPreview()">
-        <div class="form-group">
-          <label for="symbol">Símbolo de la acción</label>
-          <input
-            id="symbol"
-            type="text"
-            formControlName="symbol"
-            class="form-control"
-            placeholder="Ej: AAPL, MSFT, GOOGL"
-            autocomplete="off"
-          />
-          @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
-            <span class="form-error">El símbolo es requerido.</span>
-          }
-        </div>
+        @if (error()) {
+          <div class="alert alert-danger">{{ error() }}</div>
+        }
+        @if (success()) {
+          <div class="alert alert-success">{{ success() }}</div>
+        }
 
-        <div class="form-group">
-          <label for="quantity">Cantidad de acciones</label>
-          <input
-            id="quantity"
-            type="number"
-            formControlName="quantity"
-            class="form-control"
-            min="1"
-          />
-          @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
-            <span class="form-error">La cantidad debe ser al menos 1.</span>
-          }
-        </div>
+        <form [formGroup]="form" (ngSubmit)="onPreview()">
+          <div class="form-group">
+            <label class="label" for="symbol">Símbolo de la acción</label>
+            <input
+              id="symbol"
+              type="text"
+              formControlName="symbol"
+              class="form-control"
+              placeholder="Ej: AAPL, MSFT, GOOGL"
+              autocomplete="off"
+            />
+            @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
+              <span class="form-error">El símbolo es requerido.</span>
+            }
+          </div>
 
-        <button
-          type="submit"
-          class="btn-secondary btn-block"
-          [disabled]="form.invalid || loadingPreview()"
-        >
-          @if (loadingPreview()) {
-            <span class="spinner"></span> Calculando...
-          } @else {
-            Vista previa
-          }
-        </button>
-      </form>
+          <div class="form-group">
+            <label class="label" for="quantity">Cantidad de acciones</label>
+            <input
+              id="quantity"
+              type="number"
+              formControlName="quantity"
+              class="form-control"
+              min="1"
+            />
+            @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
+              <span class="form-error">La cantidad debe ser al menos 1.</span>
+            }
+          </div>
 
-      @if (preview()) {
-        <div class="preview-card mt-3">
-          <div class="divider"></div>
-          <h3 class="card__title">Vista previa de la orden</h3>
+          <button
+            type="submit"
+            class="btn-ghost btn-block"
+            [disabled]="form.invalid || loadingPreview()"
+          >
+            @if (loadingPreview()) {
+              <span class="spinner spinner--sm"></span> Calculando...
+            } @else {
+              Vista previa
+            }
+          </button>
+        </form>
+
+        @if (preview()) {
+          <hr class="dash-divider" />
+
+          <h2 class="serif" style="font-size:1.25rem;font-style:italic;margin-bottom:1.25rem">
+            Resumen de la <em class="down">orden</em>
+          </h2>
 
           @if (!preview()!.marketOpen) {
             <div class="alert alert-warning">
@@ -70,42 +77,46 @@
             </div>
           }
 
-          <div class="preview-rows">
-            <div class="flex-between mt-2">
-              <span class="text-muted">Símbolo</span>
-              <span class="text-cyan">{{ preview()!.symbol }}</span>
+          <div class="order-preview">
+            <div class="order-preview__row">
+              <span class="muted">Símbolo</span>
+              <span class="num up">{{ preview()!.symbol }}</span>
             </div>
-            <div class="flex-between mt-2">
-              <span class="text-muted">Cantidad</span>
-              <span>{{ preview()!.quantity }}</span>
+            <div class="order-preview__row">
+              <span class="muted">Cantidad</span>
+              <span class="num">{{ preview()!.quantity }}</span>
             </div>
-            <div class="flex-between mt-2">
-              <span class="text-muted">Precio estimado por acción</span>
-              <span>{{ formatCOP(preview()!.estimatedPrice) }}</span>
+            <div class="order-preview__row">
+              <span class="muted">Precio estimado por acción</span>
+              <span class="num">{{ formatCOP(preview()!.estimatedPrice) }}</span>
             </div>
-            <div class="flex-between mt-2">
-              <span class="text-muted">Comisión ({{ preview()!.ratePercent }}% — {{ preview()!.subscriptionType }})</span>
-              <span class="text-red">{{ formatCOP(preview()!.commission) }}</span>
+            <div class="order-preview__row">
+              <span class="muted">Comisión ({{ preview()!.ratePercent }}% — {{ preview()!.subscriptionType }})</span>
+              <span class="num down">{{ formatCOP(preview()!.commission) }}</span>
             </div>
-            <div class="flex-between mt-2">
-              <span class="text-muted">Monto neto a recibir</span>
-              <strong class="text-green">{{ formatCOP(preview()!.netAmount) }}</strong>
+            <div class="order-preview__row order-preview__row--total">
+              <span>Monto neto a recibir</span>
+              <strong class="num" style="font-size:1.2rem">{{ formatCOP(preview()!.netAmount) }}</strong>
             </div>
           </div>
 
-          <button
-            class="btn-danger btn-block mt-3"
-            (click)="onConfirm()"
-            [disabled]="loading()"
-          >
-            @if (loading()) {
-              <span class="spinner"></span> Procesando...
-            } @else {
-              Confirmar venta
-            }
-          </button>
-        </div>
-      }
+          <div class="order-actions">
+            <a routerLink="/orders/history" class="btn-ghost">Cancelar</a>
+            <button
+              class="btn-danger btn-lg"
+              (click)="onConfirm()"
+              [disabled]="loading()"
+            >
+              @if (loading()) {
+                <span class="spinner spinner--sm"></span> Procesando...
+              } @else {
+                Confirmar venta →
+              }
+            </button>
+          </div>
+        }
+      </div>
+
     </div>
   </div>
 </div>
