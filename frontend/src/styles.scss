@@ -44,6 +44,7 @@
   // Radii
   --r-sm: 6px;
   --r:    10px;
+  --r-md: 12px;
   --r-lg: 18px;
   --r-xl: 28px;
 
@@ -194,7 +195,7 @@ code, pre {
 ::-webkit-scrollbar-thumb {
   background: var(--line);
   border-radius: var(--r-sm);
-  &:hover { background: rgba(0,0,0,0.2); }
+  &:hover { background: var(--line-soft); }
 }
 
 // ── Card ─────────────────────────────────────────────────────
@@ -269,7 +270,7 @@ code, pre {
   width: 100%;
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 12px;
+  border-radius: var(--r-md);
   color: var(--ink);
   padding: 0.7rem 1rem;
   font-family: var(--sans);
@@ -548,7 +549,7 @@ select.form-control {
 .loading-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(5, 8, 18, 0.8);
+  background: rgba(31,42,28,0.6);
   display: flex;
   align-items: center;
   justify-content: center;
