@@ -59,6 +59,7 @@ class YahooFinanceClientTest {
         assertThat(quotes.get(0).price()).isEqualByComparingTo("1950.00");
         assertThat(quotes.get(0).previousClose()).isEqualByComparingTo("1930.00");
         assertThat(quotes.get(0).change()).isEqualByComparingTo("20.00");
+        assertThat(quotes.get(0).changePct()).isEqualByComparingTo("1.0363");
         assertThat(quotes.get(0).volume()).isEqualTo(5_000_000L);
         mockServer.verify();
     }

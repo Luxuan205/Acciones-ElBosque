@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.ResourceAccessException;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,7 +43,10 @@ public class YahooFinanceClient {
         if (yahooSymbols.isEmpty()) return List.of();
 
         String symbolParam = String.join(",", yahooSymbols);
-        String url = baseUrl + "/v7/finance/quote?symbols=" + symbolParam;
+        String url = UriComponentsBuilder
+                .fromHttpUrl(baseUrl + "/v7/finance/quote")
+                .queryParam("symbols", symbolParam)
+                .toUriString();
 
         YahooFinanceResponse response;
         try {
