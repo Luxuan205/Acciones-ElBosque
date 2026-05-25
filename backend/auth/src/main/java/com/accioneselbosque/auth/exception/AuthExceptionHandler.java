@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestControllerAdvice
-class AuthExceptionHandler {
+public class AuthExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {

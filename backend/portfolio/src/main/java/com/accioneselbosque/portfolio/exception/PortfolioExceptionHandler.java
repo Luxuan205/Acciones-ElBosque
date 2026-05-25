@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
 @RestControllerAdvice
-class PortfolioExceptionHandler {
+public class PortfolioExceptionHandler {
 
     @ExceptionHandler(InvalidPeriodException.class)
     public ResponseEntity<Map<String, String>> handle(InvalidPeriodException ex) {

@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
-class ConfigurationExceptionHandler {
+public class ConfigurationExceptionHandler {
 
     @ExceptionHandler(HolidayAlreadyExistsException.class)
     @ResponseStatus(HttpStatus.CONFLICT)

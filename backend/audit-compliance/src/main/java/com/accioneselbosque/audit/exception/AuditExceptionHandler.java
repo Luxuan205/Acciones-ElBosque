@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
 @RestControllerAdvice
-class AuditExceptionHandler {
+public class AuditExceptionHandler {
 
     @ExceptionHandler(AuditAccessDeniedException.class)
     public ResponseEntity<Map<String, String>> handle(AuditAccessDeniedException ex) {

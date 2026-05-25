@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestControllerAdvice(basePackages = "com.accioneselbosque.notifications")
-class NotificationsExceptionHandler {
+public class NotificationsExceptionHandler {
 
     @ExceptionHandler(NotificationNotFoundException.class)
     public ResponseEntity<Map<String, Object>> handleNotificationNotFound(NotificationNotFoundException ex) {

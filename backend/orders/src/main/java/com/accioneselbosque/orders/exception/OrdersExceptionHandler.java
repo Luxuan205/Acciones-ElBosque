@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
 @RestControllerAdvice
-class OrdersExceptionHandler {
+public class OrdersExceptionHandler {
 
     @ExceptionHandler(InsufficientBalanceException.class)
     public ResponseEntity<Map<String, String>> handleInsufficientBalance(InsufficientBalanceException ex) {
