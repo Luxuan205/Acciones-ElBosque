@@ -64,7 +64,7 @@ class ProfileControllerTest {
     void getProfile_authenticated_returns200WithProfile() throws Exception {
         ProfileResponse response = new ProfileResponse(
                 1L, "Test User", "test@example.com", "1234567890",
-                "+57 300 000 0000", AccountStatus.ACTIVE, LocalDateTime.now());
+                "+57 300 000 0000", AccountStatus.ACTIVE, null, null, LocalDateTime.now());
         when(profileService.getProfile(1L)).thenReturn(response);
 
         mockMvc.perform(get("/auth/profile").principal(AUTH_1))
@@ -80,7 +80,7 @@ class ProfileControllerTest {
         UpdatePersonalDataRequest request = new UpdatePersonalDataRequest("New Name", null);
         ProfileResponse response = new ProfileResponse(
                 1L, "New Name", "test@example.com", "1234567890",
-                null, AccountStatus.ACTIVE, LocalDateTime.now());
+                null, AccountStatus.ACTIVE, null, null, LocalDateTime.now());
         when(profileService.updatePersonalData(eq(1L), any())).thenReturn(response);
 
         mockMvc.perform(put("/auth/profile/personal")

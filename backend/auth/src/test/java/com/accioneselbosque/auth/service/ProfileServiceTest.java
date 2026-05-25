@@ -59,7 +59,7 @@ class ProfileServiceTest {
 
         ProfileResponse response = profileService.getProfile(1L);
 
-        assertThat(response.investorId()).isEqualTo(1L);
+        assertThat(response.id()).isEqualTo(1L);
         assertThat(response.fullName()).isEqualTo("Original Name");
         assertThat(response.email()).isEqualTo("test@example.com");
     }
