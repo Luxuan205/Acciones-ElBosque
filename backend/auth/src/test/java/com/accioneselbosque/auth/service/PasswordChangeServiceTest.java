@@ -1,5 +1,6 @@
 package com.accioneselbosque.auth.service;
 
+import com.accioneselbosque.audit.service.AuditService;
 import com.accioneselbosque.auth.dto.ChangePasswordRequest;
 import com.accioneselbosque.auth.exception.InvalidCurrentPasswordException;
 import com.accioneselbosque.auth.model.AccountStatus;
@@ -34,6 +35,9 @@ class PasswordChangeServiceTest {
 
     @Mock
     private PasswordEncoder passwordEncoder;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private PasswordChangeService passwordChangeService;

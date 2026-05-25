@@ -1,5 +1,6 @@
 package com.accioneselbosque.auth.service;
 
+import com.accioneselbosque.audit.service.AuditService;
 import com.accioneselbosque.auth.dto.*;
 import com.accioneselbosque.auth.exception.InvalidCurrentPasswordException;
 import com.accioneselbosque.auth.model.*;
@@ -33,6 +34,9 @@ class ProfileServiceTest {
 
     @Mock
     private ProfileChangeLogRepository changeLogRepository;
+
+    @Mock
+    private AuditService auditService;
 
     @InjectMocks
     private ProfileService profileService;
