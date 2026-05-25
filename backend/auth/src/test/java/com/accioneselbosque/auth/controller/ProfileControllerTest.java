@@ -1,7 +1,7 @@
 package com.accioneselbosque.auth.controller;
 
 import com.accioneselbosque.auth.dto.*;
-import com.accioneselbosque.auth.exception.GlobalExceptionHandler;
+import com.accioneselbosque.auth.exception.AuthExceptionHandler;
 import com.accioneselbosque.auth.exception.InvalidCurrentPasswordException;
 import com.accioneselbosque.auth.model.AccountStatus;
 import com.accioneselbosque.auth.model.Language;
@@ -53,7 +53,7 @@ class ProfileControllerTest {
     void setUp() {
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new ProfileController(profileService, passwordChangeService))
-                .setControllerAdvice(new GlobalExceptionHandler())
+                .setControllerAdvice(new AuthExceptionHandler())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }

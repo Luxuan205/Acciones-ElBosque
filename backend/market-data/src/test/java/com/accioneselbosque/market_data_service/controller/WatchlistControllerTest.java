@@ -59,7 +59,7 @@ class WatchlistControllerTest {
         // request.getUserPrincipal() without needing the Spring Security filter chain.
         mockMvc = MockMvcBuilders
                 .standaloneSetup(new WatchlistController(watchlistService))
-                .setControllerAdvice(new com.accioneselbosque.market_data_service.exception.GlobalExceptionHandler())
+                .setControllerAdvice(new com.accioneselbosque.market_data_service.exception.MarketDataExceptionHandler())
                 .setMessageConverters(new JacksonJsonHttpMessageConverter())
                 .build();
     }
