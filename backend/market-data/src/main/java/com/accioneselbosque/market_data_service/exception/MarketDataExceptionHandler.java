@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.util.Map;
 
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class MarketDataExceptionHandler {
 
     @ExceptionHandler(PremiumRequiredException.class)
     public ResponseEntity<Map<String, String>> handlePremiumRequired(PremiumRequiredException ex) {
