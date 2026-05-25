@@ -1,0 +1,11 @@
+version: "3"
+
+agent:
+  authtoken: REEMPLAZA_CON_TU_AUTHTOKEN
+
+tunnels:
+  acciones:
+    proto: http
+    addr: 80
+    # Descomenta la siguiente línea con tu dominio estático gratuito
+    # domain: tu-subdominio.ngrok-free.app

@@ -99,7 +99,7 @@
                     <td class="num">{{ order.quantity }}</td>
                     <td class="num">{{ formatCOP(order.estimatedPrice) }}</td>
                     <td class="num down">{{ formatCOP(order.commission) }}</td>
-                    <td class="num tiny muted">{{ order.createdAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="num tiny muted">{{ order.createdAt | date:'dd/MM/yyyy HH:mm':'America/Bogota' }}</td>
                     <td>
                       @if (canCancel(order)) {
                         <button class="btn-danger btn-sm" (click)="onCancel(order)">Cancelar</button>

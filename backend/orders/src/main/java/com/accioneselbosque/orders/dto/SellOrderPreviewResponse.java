@@ -9,6 +9,7 @@ public record SellOrderPreviewResponse(
         BigDecimal commission,
         BigDecimal netAmount,
         boolean marketOpen,
+        String nextOpen,
         String subscriptionType,
         BigDecimal ratePercent
 ) {}

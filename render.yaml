@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: acciones-backend
+    runtime: docker
+    dockerfilePath: backend/Dockerfile.dev
+    dockerContext: backend
+    plan: free
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: acciones-db
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: acciones-db
+          property: password
+      - key: DB_HOST
+        fromDatabase:
+          name: acciones-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: acciones-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: acciones-db
+          property: database
+      - key: JWT_SECRET
+        generateValue: true
+      - key: APP_CORS_ALLOWED_ORIGINS
+        value: https://tu-app.netlify.app   # Actualiza con tu URL de Netlify
+      - key: SPRING_MAIL_HOST
+        value: localhost
+      - key: SPRING_MAIL_PORT
+        value: "1025"
+
+databases:
+  - name: acciones-db
+    plan: free
+    databaseName: acciones_db
+    user: acciones

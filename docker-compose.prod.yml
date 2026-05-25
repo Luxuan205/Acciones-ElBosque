@@ -1,0 +1,59 @@
+services:
+
+  # ── Base de datos ──────────────────────────────────────────────
+  postgres:
+    image: postgres:16
+    container_name: acciones-postgres-prod
+    environment:
+      POSTGRES_DB: acciones_db
+      POSTGRES_USER: acciones
+      POSTGRES_PASSWORD: acciones123
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U acciones -d acciones_db"]
+      interval: 5s
+      timeout: 3s
+      retries: 15
+    networks:
+      - acciones-prod
+
+  # ── Backend Spring Boot ────────────────────────────────────────
+  app:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.dev
+    container_name: acciones-backend-prod
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/acciones_db
+      SPRING_DATASOURCE_USERNAME: acciones
+      SPRING_DATASOURCE_PASSWORD: acciones123
+      JWT_SECRET: ${JWT_SECRET:-CambiameEnProduccion256BitsMinimo1234567890ABCDEF}
+      SPRING_MAIL_HOST: ${MAIL_HOST:-localhost}
+      SPRING_MAIL_PORT: ${MAIL_PORT:-1025}
+    networks:
+      - acciones-prod
+
+  # ── Nginx (sirve Angular + proxy al backend) ───────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: acciones-nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./frontend/dist/acciones-frontend/browser:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - acciones-prod
+
+volumes:
+  postgres_prod_data:
+
+networks:
+  acciones-prod:
+    driver: bridge

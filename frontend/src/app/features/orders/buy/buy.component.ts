@@ -29,6 +29,8 @@ export class BuyComponent implements OnInit {
   loadingStocks = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  orderWarning = signal<string | null>(null);
+  marketNextOpen = signal<string | null>(null);
   preview = signal<OrderPreviewResponse | null>(null);
   result = signal<OrderResponse | null>(null);
 
@@ -44,6 +46,11 @@ export class BuyComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.marketSvc.getMarketStatus().subscribe({
+      next: s => this.marketNextOpen.set(s.nextOpen ?? null),
+      error: () => {}
+    });
+
     this.loadingStocks.set(true);
     this.marketSvc.getStocks().subscribe({
       next: stocks => {
@@ -101,6 +108,7 @@ export class BuyComponent implements OnInit {
     const { symbol, quantity } = this.form.value;
     this.loadingPreview.set(true);
     this.error.set(null);
+    this.orderWarning.set(null);
     this.preview.set(null);
 
     this.orderSvc.previewBuy(symbol!, quantity!).subscribe({
@@ -123,10 +131,17 @@ export class BuyComponent implements OnInit {
     this.success.set(null);
 
     const req: PlaceMarketBuyRequest = { symbol: symbol!, quantity: quantity! };
+    const p = this.preview();
+    const nextOpen = p?.nextOpen ?? this.marketNextOpen();
+    const closedWarning = p && !p.marketOpen
+      ? `El mercado está cerrado. La orden se ejecutará en la próxima apertura${nextOpen ? ' a las ' + nextOpen.slice(0, 5) : ''}.`
+      : null;
+
     this.orderSvc.placeBuy(req).subscribe({
       next: data => {
         this.result.set(data);
-        this.success.set(`Orden de compra #${data.id} creada exitosamente.`);
+        this.success.set(`Orden de compra creada exitosamente.`);
+        this.orderWarning.set(closedWarning);
         this.loading.set(false);
         this.preview.set(null);
         this.selectedStock.set(null);

@@ -85,7 +85,7 @@
                 {{ isPositiveMovement(mov.movementType) ? '+' : '-' }}{{ formatCOP(mov.amount) }}
               </td>
               <td>{{ mov.description }}</td>
-              <td class="text-muted">{{ mov.executedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td class="text-muted">{{ mov.executedAt | date:'dd/MM/yyyy HH:mm':'America/Bogota' }}</td>
             </tr>
           }
         </tbody>

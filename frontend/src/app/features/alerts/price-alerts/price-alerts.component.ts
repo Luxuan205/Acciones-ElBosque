@@ -107,6 +107,7 @@ export class PriceAlertsComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleDateString('es-CO', {
+      timeZone: 'America/Bogota',
       year: 'numeric',
       month: 'short',
       day: 'numeric',

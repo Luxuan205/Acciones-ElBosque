@@ -76,6 +76,6 @@ export class BrokerOrdersComponent implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleString('es-CO');
+    return new Date(dateStr).toLocaleString('es-CO', { timeZone: 'America/Bogota' });
   }
 }

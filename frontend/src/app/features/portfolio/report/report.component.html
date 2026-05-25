@@ -59,7 +59,7 @@
       <div class="card">
         <div class="card__subtitle">Período</div>
         <div class="card__value card__value--sm">
-          {{ report()!.from | date:'dd/MM/yyyy' }} — {{ report()!.to | date:'dd/MM/yyyy' }}
+          {{ report()!.from | date:'dd/MM/yyyy':'America/Bogota' }} — {{ report()!.to | date:'dd/MM/yyyy':'America/Bogota' }}
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@
           <tbody>
             @for (tx of report()!.transactions; track tx.id) {
               <tr>
-                <td class="text-muted">{{ tx.executedAt | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td class="text-muted">{{ tx.executedAt | date:'dd/MM/yyyy HH:mm':'America/Bogota' }}</td>
                 <td>
                   <span [class]="tx.transactionType === 'BUY' ? 'badge-green' : 'badge-red'">
                     {{ tx.transactionType === 'BUY' ? 'COMPRA' : 'VENTA' }}

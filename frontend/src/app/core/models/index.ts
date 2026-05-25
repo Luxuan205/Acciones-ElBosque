@@ -83,6 +83,7 @@ export interface OrderPreviewResponse {
   commission: number;
   totalEstimated: number;
   marketOpen: boolean;
+  nextOpen?: string;
   subscriptionType: string;
   ratePercent: number;
 }
@@ -94,6 +95,7 @@ export interface SellOrderPreviewResponse {
   commission: number;
   netAmount: number;
   marketOpen: boolean;
+  nextOpen?: string;
   subscriptionType: string;
   ratePercent: number;
 }

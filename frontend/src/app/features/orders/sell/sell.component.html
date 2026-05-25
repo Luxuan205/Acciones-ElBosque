@@ -126,7 +126,8 @@
 
           @if (!preview()!.marketOpen) {
             <div class="alert alert-warning">
-              El mercado está cerrado. La orden se ejecutará en la próxima apertura.
+              El mercado está cerrado. La orden se ejecutará en la próxima apertura
+              @if (preview()!.nextOpen) { a las <strong>{{ preview()!.nextOpen!.slice(0, 5) }}</strong> }.
             </div>
           }
 

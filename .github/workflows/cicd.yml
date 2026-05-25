@@ -1,0 +1,77 @@
+name: CI/CD — Acciones El Bosque
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  pipeline:
+    runs-on: self-hosted
+    timeout-minutes: 30
+
+    steps:
+      # ── 1. Código ──────────────────────────────────────────────
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # ── 2. Tests backend ───────────────────────────────────────
+      - name: Levantar base de datos de pruebas
+        run: docker-compose -f docker-compose.test.yml up -d
+
+      - name: Esperar que postgres esté listo
+        shell: pwsh
+        run: Start-Sleep -Seconds 10
+
+      - name: Ejecutar tests del backend
+        shell: pwsh
+        run: |
+          docker run --rm `
+            -v "${{ github.workspace }}\backend:/workspace" `
+            -w /workspace `
+            -v "C:\Users\Usuario\.m2:/root/.m2" `
+            -e SPRING_DATASOURCE_URL=jdbc:postgresql://host.docker.internal:5433/test_db `
+            -e SPRING_DATASOURCE_USERNAME=test `
+            -e SPRING_DATASOURCE_PASSWORD=test `
+            -e JWT_SECRET=ci-secret-key-256bits-only-for-testing `
+            -e SPRING_MAIL_HOST=localhost `
+            -e SPRING_MAIL_PORT=1025 `
+            maven:3.9-eclipse-temurin-21 `
+            mvn test --no-transfer-progress
+
+      - name: Detener base de datos de pruebas
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down
+
+      # ── 3. Build frontend ──────────────────────────────────────
+      - name: Instalar dependencias Angular
+        working-directory: frontend
+        run: npm ci --prefer-offline
+
+      - name: Build Angular (producción)
+        working-directory: frontend
+        run: npx ng build --configuration production
+
+      # ── 4. Despliegue ──────────────────────────────────────────
+      - name: Desplegar con Docker Compose
+        run: docker-compose -f docker-compose.prod.yml up -d --build
+
+      # ── 5. Verificación ────────────────────────────────────────
+      - name: Health check
+        shell: pwsh
+        run: |
+          Write-Host "Esperando que la aplicación arranque..."
+          Start-Sleep -Seconds 45
+
+          $frontend = Invoke-WebRequest -Uri "http://localhost" -UseBasicParsing
+          if ($frontend.StatusCode -ne 200) {
+            throw "Frontend no responde (status $($frontend.StatusCode))"
+          }
+
+          $backend = Invoke-WebRequest -Uri "http://localhost/api/config/market/status" -UseBasicParsing
+          if ($backend.StatusCode -ne 200) {
+            throw "Backend no responde (status $($backend.StatusCode))"
+          }
+
+          Write-Host "Despliegue exitoso"

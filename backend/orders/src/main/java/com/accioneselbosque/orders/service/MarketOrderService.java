@@ -58,8 +58,10 @@ public class MarketOrderService {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal total = gross.add(commission).setScale(2, RoundingMode.HALF_UP);
 
+        boolean open = marketStatusService.isMarketOpen();
+        String nextOpen = open ? null : marketStatusService.getStatus().getNextOpen();
         return new OrderPreviewResponse(symbol, quantity, price, commission, total,
-                marketStatusService.isMarketOpen(), subType, ratePercent);
+                open, nextOpen, subType, ratePercent);
     }
 
     public OrderResponse placeBuy(Long investorId, PlaceMarketBuyRequest req) {
@@ -111,8 +113,13 @@ public class MarketOrderService {
         CommissionBreakdown breakdown = new CommissionBreakdown(
                 preview.estimatedPrice(), req.quantity(), preview.commission(), preview.totalEstimated());
 
-        String message = status == OrderStatus.QUEUED
-                ? "El mercado está cerrado. La orden se ejecutará en la próxima apertura." : null;
+        String message = null;
+        if (status == OrderStatus.QUEUED) {
+            String nextOpen = marketStatusService.getStatus().getNextOpen();
+            message = nextOpen != null
+                    ? "El mercado está cerrado. La orden se ejecutará en la próxima apertura a las " + nextOpen + "."
+                    : "El mercado está cerrado. La orden se ejecutará en la próxima apertura.";
+        }
 
         auditService.record(AuditEventRecord.builder()
                 .eventType(AuditEventType.ORDER_CREATED)

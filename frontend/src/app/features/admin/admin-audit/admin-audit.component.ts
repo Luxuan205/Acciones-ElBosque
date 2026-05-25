@@ -82,7 +82,7 @@ export class AdminAuditComponent implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleString('es-CO');
+    return new Date(dateStr).toLocaleString('es-CO', { timeZone: 'America/Bogota' });
   }
 
   clearFilters(): void {

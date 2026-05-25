@@ -19,6 +19,9 @@
         @if (success()) {
           <div class="alert alert-success">{{ success() }}</div>
         }
+        @if (orderWarning()) {
+          <div class="alert alert-warning">{{ orderWarning() }}</div>
+        }
 
         <form [formGroup]="form" (ngSubmit)="onPreview()">
 
@@ -126,7 +129,10 @@
 
           @if (!preview()!.marketOpen) {
             <div class="alert alert-warning">
-              El mercado está cerrado. La orden se ejecutará en la próxima apertura.
+              El mercado está cerrado. La orden se ejecutará en la próxima apertura
+              @if (preview()!.nextOpen ?? marketNextOpen()) {
+                a las <strong>{{ (preview()!.nextOpen ?? marketNextOpen())!.slice(0, 5) }}</strong>
+              }.
             </div>
           }
 

@@ -4,6 +4,12 @@ import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { StockSummary, StockDetail, IntradayData } from '../models';
 
+export interface MarketStatusInfo {
+  status: string;
+  nextOpen?: string;
+  nextClose?: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class MarketService {
   private readonly http = inject(HttpClient);
@@ -22,5 +28,9 @@ export class MarketService {
 
   getIntraday(symbol: string): Observable<IntradayData> {
     return this.http.get<IntradayData>(`${this.base}/market/stocks/${symbol}/intraday`);
+  }
+
+  getMarketStatus(): Observable<MarketStatusInfo> {
+    return this.http.get<MarketStatusInfo>(`${this.base}/config/market/status`);
   }
 }

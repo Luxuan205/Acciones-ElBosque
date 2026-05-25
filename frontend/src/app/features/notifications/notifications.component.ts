@@ -63,7 +63,8 @@ export class NotificationsComponent implements OnInit {
   }
 
   formatDate(dateStr: string): string {
-    return new Date(dateStr).toLocaleDateString('es-CO', {
+    return new Date(dateStr).toLocaleString('es-CO', {
+      timeZone: 'America/Bogota',
       year: 'numeric',
       month: 'short',
       day: 'numeric',

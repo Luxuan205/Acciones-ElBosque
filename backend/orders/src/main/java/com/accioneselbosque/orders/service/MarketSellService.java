@@ -52,8 +52,10 @@ public class MarketSellService {
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
         BigDecimal net = gross.subtract(commission).setScale(2, RoundingMode.HALF_UP);
 
+        boolean open = marketStatusService.isMarketOpen();
+        String nextOpen = open ? null : marketStatusService.getStatus().getNextOpen();
         return new SellOrderPreviewResponse(symbol, quantity, price, commission, net,
-                marketStatusService.isMarketOpen(), subType, ratePercent);
+                open, nextOpen, subType, ratePercent);
     }
 
     public OrderResponse placeSell(Long investorId, PlaceMarketSellRequest req) {

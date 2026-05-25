@@ -1,2 +1,14 @@
 .env
 .claude/
+.superpowers/
+
+# Maven build output
+target/
+*.class
+*.jar
+
+# Design handoff artifacts
+design_handoff_frontend_revamp/
+
+# Logs
+*.log
