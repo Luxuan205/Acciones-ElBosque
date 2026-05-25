@@ -4,6 +4,7 @@ import com.accioneselbosque.market_data_service.config.YahooFinanceProperties;
 import com.accioneselbosque.market_data_service.dto.MarketQuote;
 import com.accioneselbosque.market_data_service.exception.YahooFinanceException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -24,7 +25,7 @@ public class YahooFinanceClient {
     private final RestTemplate restTemplate;
     private final String baseUrl;
 
-    // Production constructor — Spring calls this
+    @Autowired
     public YahooFinanceClient(YahooFinanceProperties props) {
         SimpleClientHttpRequestFactory factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(10_000);
