@@ -32,9 +32,17 @@ services:
       - key: APP_CORS_ALLOWED_ORIGINS
         value: https://accioneselbosque.netlify.app
       - key: SPRING_MAIL_HOST
-        value: localhost
+        value: smtp.gmail.com
       - key: SPRING_MAIL_PORT
-        value: "1025"
+        value: "587"
+      - key: SPRING_MAIL_SMTP_AUTH
+        value: "true"
+      - key: SPRING_MAIL_SMTP_STARTTLS
+        value: "true"
+      - key: SPRING_MAIL_USERNAME
+        sync: false
+      - key: SPRING_MAIL_PASSWORD
+        sync: false
       - key: SERVER_PORT
         value: "10000"
 

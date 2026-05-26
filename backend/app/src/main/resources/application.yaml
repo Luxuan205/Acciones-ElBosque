@@ -36,9 +36,9 @@ spring:
     properties:
       mail:
         smtp:
-          auth: false
+          auth: ${SPRING_MAIL_SMTP_AUTH:false}
           starttls:
-            enable: false
+            enable: ${SPRING_MAIL_SMTP_STARTTLS:false}
 
 app:
   cors:

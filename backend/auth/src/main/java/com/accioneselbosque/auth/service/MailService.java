@@ -22,11 +22,15 @@ public class MailService {
     @Value("${app.verification.base-url}")
     private String verificationBaseUrl;
 
+    @Value("${spring.mail.username:}")
+    private String mailFrom;
+
     public void sendVerificationEmail(Investor investor, String tokenValue) {
         String verificationUrl = verificationBaseUrl + "/auth/verify?token=" + tokenValue;
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            if (!mailFrom.isBlank()) helper.setFrom(mailFrom);
             helper.setTo(investor.getEmail());
             helper.setSubject("Verifica tu cuenta en Acciones El Bosque");
 
@@ -46,6 +50,7 @@ public class MailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            if (!mailFrom.isBlank()) helper.setFrom(mailFrom);
             helper.setTo(email);
             helper.setSubject("Tu código de verificación - Acciones El Bosque");
             helper.setText("<p>Tu código de verificación es: <strong>" + otpCode + "</strong></p><p>Válido por 5 minutos.</p>", true);
@@ -63,6 +68,7 @@ public class MailService {
         try {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper helper = new MimeMessageHelper(message, true, StandardCharsets.UTF_8.name());
+            if (!mailFrom.isBlank()) helper.setFrom(mailFrom);
             helper.setTo(email);
             helper.setSubject("Restablecimiento de contraseña - Acciones El Bosque");
             helper.setText("<p>Se ha iniciado un restablecimiento de contraseña para tu cuenta.</p>" +
