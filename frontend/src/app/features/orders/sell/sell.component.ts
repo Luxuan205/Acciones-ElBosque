@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, ActivatedRoute } from '@angular/router';
+import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
 import { PortfolioService } from '../../../core/services/portfolio.service';
@@ -23,6 +23,7 @@ export class SellComponent implements OnInit {
   private readonly portfolioSvc = inject(PortfolioService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   loading = signal(false);
   loadingPreview = signal(false);
@@ -122,14 +123,8 @@ export class SellComponent implements OnInit {
     const req: PlaceMarketSellRequest = { symbol: symbol!, quantity: quantity! };
     this.orderSvc.placeSell(req).subscribe({
       next: data => {
-        this.result.set(data);
-        this.success.set(`Orden de venta #${data.id} creada exitosamente.`);
         this.loading.set(false);
-        this.preview.set(null);
-        this.selectedPosition.set(null);
-        this.positionSearch = '';
-        this.form.reset({ symbol: '', quantity: 1 });
-        this.filteredPositions.set(this.positions().slice(0, 12));
+        this.router.navigate(['/dashboard']);
       },
       error: () => {
         this.error.set('Error al procesar la orden de venta. Intente nuevamente.');
