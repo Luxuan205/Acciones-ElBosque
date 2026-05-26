@@ -1,6 +1,5 @@
 package com.accioneselbosque.orders.service;
 
-import com.accioneselbosque.configuration.service.MarketStatusService;
 import com.accioneselbosque.market_data_service.service.StockSnapshotService;
 import com.accioneselbosque.orders.model.Order;
 import com.accioneselbosque.orders.model.OrderStatus;
@@ -30,7 +29,6 @@ import java.util.List;
 public class OrderQueueProcessor {
 
     private final OrderRepository orderRepository;
-    private final MarketStatusService marketStatusService;
     private final StockSnapshotService stockSnapshotService;
     private final PositionUpdateService positionUpdateService;
     private final AccountBalanceRepository accountBalanceRepository;
@@ -44,7 +42,6 @@ public class OrderQueueProcessor {
     @Scheduled(fixedRate = 60_000)
     @Transactional
     public void processQueue() {
-        if (!marketStatusService.isMarketOpen()) return;
 
         // Move QUEUED → PENDING at market open
         List<Order> queued = orderRepository.findByStatusAndOrderTypeIn(

@@ -1,6 +1,5 @@
 package com.accioneselbosque.orders.service;
 
-import com.accioneselbosque.configuration.service.MarketStatusService;
 import com.accioneselbosque.market_data_service.service.StockSnapshotService;
 import com.accioneselbosque.orders.model.Order;
 import com.accioneselbosque.orders.model.OrderStatus;
@@ -33,7 +32,6 @@ public class LimitOrderEvaluationJob {
     private final BalanceReservationRepository balanceReservationRepository;
     private final TitleReservationRepository titleReservationRepository;
     private final StockSnapshotService stockSnapshotService;
-    private final MarketStatusService marketStatusService;
     private final PositionUpdateService positionUpdateService;
     private final AccountBalanceRepository accountBalanceRepository;
 
@@ -43,7 +41,6 @@ public class LimitOrderEvaluationJob {
 
     @Scheduled(fixedRate = 30_000)
     public void evaluate() {
-        if (!marketStatusService.isMarketOpen()) return;
 
         LocalDateTime now = LocalDateTime.now();
 

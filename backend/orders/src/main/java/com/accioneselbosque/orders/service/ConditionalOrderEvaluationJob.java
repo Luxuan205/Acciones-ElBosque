@@ -1,6 +1,5 @@
 package com.accioneselbosque.orders.service;
 
-import com.accioneselbosque.configuration.service.MarketStatusService;
 import com.accioneselbosque.market_data_service.service.StockSnapshotService;
 import com.accioneselbosque.orders.model.ConditionalOrder;
 import com.accioneselbosque.orders.model.ConditionalOrderStatus;
@@ -27,7 +26,6 @@ public class ConditionalOrderEvaluationJob {
 
     private final ConditionalOrderRepository conditionalOrderRepository;
     private final StockSnapshotService stockSnapshotService;
-    private final MarketStatusService marketStatusService;
     private final PositionUpdateService positionUpdateService;
     private final AccountBalanceRepository accountBalanceRepository;
 
@@ -37,7 +35,6 @@ public class ConditionalOrderEvaluationJob {
 
     @Scheduled(fixedRate = 30_000)
     public void evaluate() {
-        if (!marketStatusService.isMarketOpen()) return;
 
         conditionalOrderRepository.findByStatus(ConditionalOrderStatus.ACTIVE)
                 .forEach(order -> {
