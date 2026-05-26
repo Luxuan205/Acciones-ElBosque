@@ -28,6 +28,7 @@ public class ConditionalOrderEvaluationJob {
     private final StockSnapshotService stockSnapshotService;
     private final PositionUpdateService positionUpdateService;
     private final AccountBalanceRepository accountBalanceRepository;
+    private final ConditionalOrderService conditionalOrderService;
 
     @Autowired
     @Lazy
@@ -75,6 +76,10 @@ public class ConditionalOrderEvaluationJob {
                 conditionalOrderRepository.save(order);
                 log.info("ConditionalOrderEvaluationJob: triggered {} order {} for investor {}",
                         order.getType(), order.getId(), order.getInvestorId());
+
+                // Release title reservation (may be on this order or on the OCO partner)
+                conditionalOrderService.releaseReservationForOrderOrPartner(
+                        order.getId(), order.getOcoPartnerId());
 
                 // Cancel OCO partner
                 if (order.getOcoPartnerId() != null) {

@@ -16,6 +16,7 @@ import com.accioneselbosque.orders.model.OrderType;
 import com.accioneselbosque.orders.model.TitleReservation;
 import com.accioneselbosque.orders.repository.OrderRepository;
 import com.accioneselbosque.orders.repository.TitleReservationRepository;
+import com.accioneselbosque.portfolio.facade.PortfolioFacade;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +35,7 @@ public class MarketSellService {
     private final MarketStatusService marketStatusService;
     private final OrderRepository orderRepository;
     private final TitleReservationRepository titleReservationRepository;
-    private final PortfolioQueryFacade portfolioFacade;
+    private final PortfolioFacade portfolioFacade;
     private final CommissionCalculatorService commissionCalculatorService;
 
     private static final int MAX_QUEUED_ORDERS = 10;
