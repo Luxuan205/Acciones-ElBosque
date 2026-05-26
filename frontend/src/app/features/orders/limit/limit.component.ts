@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
 import { PortfolioService } from '../../../core/services/portfolio.service';
@@ -22,6 +22,7 @@ export class LimitComponent implements OnInit {
   private readonly orderSvc = inject(OrderService);
   private readonly portfolioSvc = inject(PortfolioService);
   private readonly fb = inject(FormBuilder);
+  private readonly router = inject(Router);
 
   loading = signal(false);
   loadingPositions = signal(false);
@@ -111,11 +112,8 @@ export class LimitComponent implements OnInit {
 
     obs$.subscribe({
       next: data => {
-        this.result.set(data);
-        this.success.set(`Orden límite #${data.id} (${data.orderType}) creada exitosamente.`);
         this.loading.set(false);
-        this.clearPosition();
-        this.form.reset({ symbol: '', quantity: 1, limitPrice: null, expiresAt: null });
+        this.router.navigate(['/dashboard']);
       },
       error: () => {
         this.error.set('Error al crear la orden límite. Intente nuevamente.');
