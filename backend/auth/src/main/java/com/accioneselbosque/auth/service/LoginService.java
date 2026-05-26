@@ -7,11 +7,7 @@ import com.accioneselbosque.auth.exception.AccountSuspendedException;
 import com.accioneselbosque.auth.exception.InvalidCredentialsException;
 import com.accioneselbosque.auth.model.AccountStatus;
 import com.accioneselbosque.auth.model.Investor;
-import com.accioneselbosque.auth.model.MfaSession;
-import com.accioneselbosque.auth.model.OtpCode;
 import com.accioneselbosque.auth.repository.InvestorRepository;
-import com.accioneselbosque.auth.repository.MfaSessionRepository;
-import com.accioneselbosque.auth.repository.OtpCodeRepository;
 import com.accioneselbosque.audit.model.AuditEventRecord;
 import com.accioneselbosque.audit.model.AuditEventType;
 import com.accioneselbosque.audit.model.AuditResult;
@@ -24,10 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
-import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.util.Optional;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -35,10 +29,8 @@ import java.util.UUID;
 public class LoginService {
 
     private final InvestorRepository investorRepository;
-    private final OtpCodeRepository otpCodeRepository;
-    private final MfaSessionRepository mfaSessionRepository;
-    private final MailService mailService;
     private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
     private final AuditService auditService;
 
     // Dummy bcrypt hash for constant-time verification (prevents email enumeration timing attack)
@@ -49,14 +41,6 @@ public class LoginService {
 
     @Value("${app.login.lock-minutes:30}")
     private int lockMinutes;
-
-    @Value("${app.login.otp-ttl-minutes:5}")
-    private int otpTtlMinutes;
-
-    @Value("${app.login.session-ttl-minutes:5}")
-    private int sessionTtlMinutes;
-
-    private final SecureRandom secureRandom = new SecureRandom();
 
     public LoginResponse login(LoginRequest req) {
         Optional<Investor> optInvestor = investorRepository.findByEmail(req.email());
@@ -128,32 +112,17 @@ public class LoginService {
         investor.setLockedUntil(null);
         investorRepository.save(investor);
 
-        // Create MFA session
-        String sessionToken = UUID.randomUUID().toString();
-        MfaSession session = MfaSession.builder()
-                .sessionToken(sessionToken)
+        String role = investor.getRole() != null ? investor.getRole().name() : "INVESTOR";
+        String accessToken = jwtService.generateToken(investor.getId(), role);
+
+        auditService.record(AuditEventRecord.builder()
+                .eventType(AuditEventType.AUTH_SUCCESS)
                 .investorId(investor.getId())
-                .expiresAt(LocalDateTime.now().plusMinutes(sessionTtlMinutes))
-                .completed(false)
-                .createdAt(LocalDateTime.now())
-                .build();
-        mfaSessionRepository.save(session);
+                .result(AuditResult.SUCCESS)
+                .detail("role=" + role)
+                .build());
 
-        // Generate 6-digit OTP
-        String otpCode = String.format("%06d", secureRandom.nextInt(1_000_000));
-        OtpCode otp = OtpCode.builder()
-                .investorId(investor.getId())
-                .code(otpCode)
-                .channel("EMAIL")
-                .expiresAt(LocalDateTime.now().plusMinutes(otpTtlMinutes))
-                .createdAt(LocalDateTime.now())
-                .build();
-        otpCodeRepository.save(otp);
-
-        // Send OTP via email
-        mailService.sendOtp(investor.getEmail(), otpCode);
-
-        return new LoginResponse(sessionToken, "EMAIL");
+        return new LoginResponse(accessToken, role);
     }
 
     /**

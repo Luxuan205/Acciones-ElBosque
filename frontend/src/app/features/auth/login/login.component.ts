@@ -36,13 +36,13 @@ export class LoginComponent {
     this.auth.login(this.form.value as any).subscribe({
       next: res => {
         this.loading.set(false);
-        this.router.navigate(['/mfa'], {
-          queryParams: {
-            sessionToken: res.sessionToken,
-            channel: res.channel,
-            maskedEmail: res.maskedEmail ?? ''
-          }
-        });
+        if (res.role === 'ADMIN') {
+          this.router.navigate(['/admin']);
+        } else if (res.role === 'BROKER') {
+          this.router.navigate(['/broker']);
+        } else {
+          this.router.navigate(['/dashboard']);
+        }
       },
       error: err => {
         this.loading.set(false);

@@ -21,9 +21,8 @@ export interface LoginRequest {
 }
 
 export interface LoginResponse {
-  sessionToken: string;
-  channel: string;
-  maskedEmail?: string;
+  accessToken: string;
+  role: string;
 }
 
 export interface MfaVerifyRequest {

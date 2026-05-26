@@ -34,7 +34,9 @@ export class AuthService {
   }
 
   login(req: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.base}/auth/login`, req);
+    return this.http.post<LoginResponse>(`${this.base}/auth/login`, req).pipe(
+      tap(res => this.storage.setToken(res.accessToken, res.role))
+    );
   }
 
   verifyMfa(req: MfaVerifyRequest): Observable<MfaVerifyResponse> {
