@@ -37,7 +37,7 @@ public class MailService {
             helper.setText(html, true);
             mailSender.send(message);
             log.info("Verification email sent to {}", investor.getEmail());
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send verification email to {}", investor.getEmail(), e);
         }
     }
@@ -51,7 +51,7 @@ public class MailService {
             helper.setText("<p>Tu código de verificación es: <strong>" + otpCode + "</strong></p><p>Válido por 5 minutos.</p>", true);
             mailSender.send(message);
             log.info("OTP sent to {}", email);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             // IMP-1: Mail failure does not rollback transaction. OTP session is persisted
             // even if email delivery fails; this is intentional for user experience.
             log.error("Failed to send OTP to {}", email, e);
@@ -71,7 +71,7 @@ public class MailService {
                     true);
             mailSender.send(message);
             log.info("Password reset email sent to {}", email);
-        } catch (MessagingException e) {
+        } catch (Exception e) {
             log.error("Failed to send password reset email to {}", email, e);
         }
     }
