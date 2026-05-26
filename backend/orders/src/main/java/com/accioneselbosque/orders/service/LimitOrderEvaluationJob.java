@@ -8,6 +8,10 @@ import com.accioneselbosque.orders.model.OrderType;
 import com.accioneselbosque.orders.repository.BalanceReservationRepository;
 import com.accioneselbosque.orders.repository.OrderRepository;
 import com.accioneselbosque.orders.repository.TitleReservationRepository;
+import com.accioneselbosque.portfolio.model.AccountBalance;
+import com.accioneselbosque.portfolio.model.TransactionType;
+import com.accioneselbosque.portfolio.repository.AccountBalanceRepository;
+import com.accioneselbosque.portfolio.service.PositionUpdateService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +34,8 @@ public class LimitOrderEvaluationJob {
     private final TitleReservationRepository titleReservationRepository;
     private final StockSnapshotService stockSnapshotService;
     private final MarketStatusService marketStatusService;
+    private final PositionUpdateService positionUpdateService;
+    private final AccountBalanceRepository accountBalanceRepository;
 
     @Autowired
     @Lazy
@@ -76,21 +82,41 @@ public class LimitOrderEvaluationJob {
 
     @Transactional
     public void executeOrder(Order order) {
-        order.setStatus(OrderStatus.EXECUTED);
-        orderRepository.save(order);
-        if (order.getOrderType() == OrderType.LIMIT_BUY) {
+        BigDecimal execPrice = stockSnapshotService.findBySymbol(order.getSymbol())
+                .map(s -> s.getCurrentPrice())
+                .orElse(order.getLimitPrice());
+
+        TransactionType txType = order.getOrderType() == OrderType.LIMIT_BUY
+                ? TransactionType.BUY : TransactionType.SELL;
+
+        positionUpdateService.onOrderExecuted(
+                order.getInvestorId(), order.getSymbol(), txType,
+                order.getQuantity(), execPrice, order.getCommission(), order.getId());
+
+        AccountBalance balance = accountBalanceRepository.findByInvestorId(order.getInvestorId())
+                .orElseGet(() -> accountBalanceRepository.save(AccountBalance.builder()
+                        .investorId(order.getInvestorId()).totalBalance(BigDecimal.ZERO).currency("COP").build()));
+
+        BigDecimal gross = execPrice.multiply(BigDecimal.valueOf(order.getQuantity()));
+        if (txType == TransactionType.BUY) {
+            balance.setTotalBalance(balance.getTotalBalance().subtract(gross.add(order.getCommission())));
             balanceReservationRepository.findByOrderId(order.getId()).ifPresent(r -> {
-                r.setReleased(true);
-                r.setReleasedAt(LocalDateTime.now());
+                r.setReleased(true); r.setReleasedAt(LocalDateTime.now());
                 balanceReservationRepository.save(r);
             });
         } else {
+            balance.setTotalBalance(balance.getTotalBalance().add(gross.subtract(order.getCommission())));
             titleReservationRepository.findByOrderId(order.getId()).ifPresent(r -> {
-                r.setReleased(true);
-                r.setReleasedAt(LocalDateTime.now());
+                r.setReleased(true); r.setReleasedAt(LocalDateTime.now());
                 titleReservationRepository.save(r);
             });
         }
+        accountBalanceRepository.save(balance);
+
+        order.setStatus(OrderStatus.EXECUTED);
+        orderRepository.save(order);
+        log.info("LimitOrderEvaluationJob: executed {} order {} for investor {}",
+                order.getOrderType(), order.getId(), order.getInvestorId());
     }
 
     @Transactional

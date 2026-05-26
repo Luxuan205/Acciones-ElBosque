@@ -17,6 +17,11 @@
   <dependencies>
     <dependency>
       <groupId>com.accioneselbosque</groupId>
+      <artifactId>portfolio</artifactId>
+      <version>0.0.1-SNAPSHOT</version>
+    </dependency>
+    <dependency>
+      <groupId>com.accioneselbosque</groupId>
       <artifactId>audit-compliance</artifactId>
       <version>0.0.1-SNAPSHOT</version>
     </dependency>
