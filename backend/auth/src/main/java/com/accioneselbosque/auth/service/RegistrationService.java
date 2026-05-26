@@ -43,7 +43,7 @@ public class RegistrationService {
         investor.setDocumentNumber(request.getDocumentNumber());
         investor.setEmail(request.getEmail());
         investor.setPasswordHash(passwordEncoder.encode(request.getPassword()));
-        investor.setAccountStatus(AccountStatus.PENDING);
+        investor.setAccountStatus(AccountStatus.ACTIVE);
 
         investor = investorRepository.save(investor);
 

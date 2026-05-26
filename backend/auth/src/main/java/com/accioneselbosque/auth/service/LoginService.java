@@ -72,11 +72,10 @@ public class LoginService {
 
         // Check account status
         switch (investor.getAccountStatus()) {
-            case PENDING -> throw new ResponseStatusException(HttpStatus.FORBIDDEN, "ACCOUNT_PENDING");
             case BLOCKED -> throw new AccountLockedException();
             case SUSPENDED -> throw new AccountSuspendedException();
             default -> {
-                // ACTIVE or INACTIVE: proceed
+                // ACTIVE, PENDING, INACTIVE: proceed
             }
         }
 
