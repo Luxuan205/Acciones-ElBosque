@@ -22,37 +22,35 @@
 
         <form [formGroup]="form" (ngSubmit)="onPreview()">
 
-          <!-- Stock selector -->
+          <!-- Stock selector (solo posiciones poseídas) -->
           <div class="form-group">
             <label class="label">Acción</label>
 
-            @if (selectedStock()) {
+            @if (selectedPosition()) {
               <div class="stock-selected">
                 <div class="stock-selected__info">
                   <span class="serif" style="font-size:1.05rem;font-weight:600;color:var(--berry)">
-                    {{ selectedStock()!.symbol }}
+                    {{ selectedPosition()!.symbol }}
                   </span>
-                  <span class="muted" style="font-size:0.82rem">{{ selectedStock()!.name }}</span>
+                  <span class="muted" style="font-size:0.82rem">{{ selectedPosition()!.name }}</span>
                 </div>
                 <div class="stock-selected__price">
                   <span class="num" style="font-size:0.95rem">
-                    {{ selectedStock()!.currentPrice | currency:'USD':'symbol':'1.2-2' }}
+                    {{ selectedPosition()!.currentPrice | currency:'USD':'symbol':'1.2-2' }}
                   </span>
-                  <span class="num tiny"
-                        [class.up]="selectedStock()!.dayChangePct >= 0"
-                        [class.down]="selectedStock()!.dayChangePct < 0">
-                    {{ selectedStock()!.dayChangePct >= 0 ? '+' : '' }}{{ selectedStock()!.dayChangePct | number:'1.2-2' }}%
+                  <span class="muted tiny" style="margin-left:0.5rem">
+                    {{ selectedPosition()!.quantity }} acciones disponibles
                   </span>
                 </div>
-                <button type="button" class="stock-selected__clear" (click)="clearStock()" aria-label="Cambiar acción">✕</button>
+                <button type="button" class="stock-selected__clear" (click)="clearPosition()" aria-label="Cambiar acción">✕</button>
               </div>
             } @else {
               <div class="stock-selector">
                 <input
                   type="text"
                   class="form-control"
-                  placeholder="Buscar por nombre o símbolo (Ej: AAPL, Apple...)"
-                  [value]="stockSearch"
+                  placeholder="Buscar en tu portafolio (Ej: AAPL, Apple...)"
+                  [value]="positionSearch"
                   (input)="onSearchInput($any($event.target).value)"
                   (focus)="showDropdown.set(true)"
                   (blur)="onSearchBlur()"
@@ -61,23 +59,23 @@
                 @if (loadingStocks()) {
                   <div class="stock-dropdown stock-dropdown--loading">
                     <span class="spinner spinner--sm"></span>
-                    <span class="muted tiny" style="margin-left:0.5rem">Cargando acciones...</span>
+                    <span class="muted tiny" style="margin-left:0.5rem">Cargando portafolio...</span>
                   </div>
-                } @else if (showDropdown() && filteredStocks().length > 0) {
+                } @else if (!loadingStocks() && positions().length === 0) {
+                  <div class="stock-dropdown" style="padding:1rem;text-align:center">
+                    <span class="muted tiny">No tienes acciones en tu portafolio.</span>
+                  </div>
+                } @else if (showDropdown() && filteredPositions().length > 0) {
                   <div class="stock-dropdown" role="listbox">
-                    @for (s of filteredStocks(); track s.symbol) {
+                    @for (p of filteredPositions(); track p.symbol) {
                       <button type="button" class="stock-option" role="option"
-                              (mousedown)="selectStock(s)">
-                        <span class="stock-option__symbol serif">{{ s.symbol }}</span>
-                        <span class="stock-option__name muted">{{ s.name }}</span>
+                              (mousedown)="selectPosition(p)">
+                        <span class="stock-option__symbol serif">{{ p.symbol }}</span>
+                        <span class="stock-option__name muted">{{ p.name }}</span>
                         <span class="stock-option__price num">
-                          {{ s.currentPrice | currency:'USD':'symbol':'1.2-2' }}
+                          {{ p.currentPrice | currency:'USD':'symbol':'1.2-2' }}
                         </span>
-                        <span class="stock-option__change num tiny"
-                              [class.up]="s.dayChangePct >= 0"
-                              [class.down]="s.dayChangePct < 0">
-                          {{ s.dayChangePct >= 0 ? '+' : '' }}{{ s.dayChangePct | number:'1.2-2' }}%
-                        </span>
+                        <span class="muted tiny">{{ p.quantity }} acc.</span>
                       </button>
                     }
                   </div>
@@ -86,18 +84,24 @@
             }
 
             @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
-              <span class="form-error">Selecciona una acción.</span>
+              <span class="form-error">Selecciona una acción de tu portafolio.</span>
             }
           </div>
 
           <div class="form-group">
             <label class="label" for="quantity">Cantidad de acciones</label>
+            @if (selectedPosition()) {
+              <span class="muted tiny" style="display:block;margin-bottom:0.25rem">
+                Disponibles: {{ selectedPosition()!.quantity }}
+              </span>
+            }
             <input
               id="quantity"
               type="number"
               formControlName="quantity"
               class="form-control"
               min="1"
+              [max]="selectedPosition()?.quantity ?? null"
             />
             @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
               <span class="form-error">La cantidad debe ser al menos 1.</span>

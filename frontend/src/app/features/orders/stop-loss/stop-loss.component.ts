@@ -3,9 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
+import { PortfolioService } from '../../../core/services/portfolio.service';
 import {
   OrderResponse,
-  PlaceStopLossRequest
+  PlaceStopLossRequest,
+  PositionDto
 } from '../../../core/models';
 
 @Component({
@@ -17,12 +19,20 @@ import {
 })
 export class StopLossComponent implements OnInit {
   private readonly orderSvc = inject(OrderService);
+  private readonly portfolioSvc = inject(PortfolioService);
   private readonly fb = inject(FormBuilder);
 
   loading = signal(false);
+  loadingPositions = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
   result = signal<OrderResponse | null>(null);
+
+  positions = signal<PositionDto[]>([]);
+  filteredPositions = signal<PositionDto[]>([]);
+  selectedPosition = signal<PositionDto | null>(null);
+  showDropdown = signal(false);
+  positionSearch = '';
 
   readonly typeOptions: { value: PlaceStopLossRequest['type']; label: string; description: string }[] = [
     { value: 'STOP_LOSS', label: 'Stop Loss', description: 'Vende cuando el precio cae al límite' },
@@ -38,7 +48,47 @@ export class StopLossComponent implements OnInit {
     type: ['STOP_LOSS' as PlaceStopLossRequest['type'], Validators.required]
   });
 
-  ngOnInit(): void {}
+  ngOnInit(): void {
+    this.loadingPositions.set(true);
+    this.portfolioSvc.getPositions().subscribe({
+      next: response => {
+        const positions = response.positions.filter(p => p.quantity > 0);
+        this.positions.set(positions);
+        this.filteredPositions.set(positions.slice(0, 12));
+        this.loadingPositions.set(false);
+      },
+      error: () => this.loadingPositions.set(false)
+    });
+  }
+
+  onPositionSearch(value: string): void {
+    this.positionSearch = value;
+    const q = value.toLowerCase();
+    this.filteredPositions.set(
+      this.positions()
+        .filter(p => p.symbol.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))
+        .slice(0, 12)
+    );
+    this.showDropdown.set(true);
+  }
+
+  onPositionBlur(): void {
+    setTimeout(() => this.showDropdown.set(false), 200);
+  }
+
+  selectPosition(pos: PositionDto): void {
+    this.selectedPosition.set(pos);
+    this.positionSearch = pos.symbol;
+    this.form.patchValue({ symbol: pos.symbol });
+    this.showDropdown.set(false);
+  }
+
+  clearPosition(): void {
+    this.selectedPosition.set(null);
+    this.positionSearch = '';
+    this.form.patchValue({ symbol: '' });
+    this.filteredPositions.set(this.positions().slice(0, 12));
+  }
 
   onSubmit(): void {
     if (this.form.invalid) return;
@@ -61,6 +111,7 @@ export class StopLossComponent implements OnInit {
         this.result.set(data);
         this.success.set(`Orden #${data.id} de tipo ${type} creada exitosamente.`);
         this.loading.set(false);
+        this.clearPosition();
         this.form.reset({ symbol: '', quantity: 1, triggerPrice: null, targetPrice: null, type: 'STOP_LOSS' });
       },
       error: () => {

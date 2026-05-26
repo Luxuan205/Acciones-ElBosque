@@ -3,12 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { OrderService } from '../../../core/services/order.service';
-import { MarketService } from '../../../core/services/market.service';
+import { PortfolioService } from '../../../core/services/portfolio.service';
 import {
   SellOrderPreviewResponse,
   OrderResponse,
   PlaceMarketSellRequest,
-  StockSummary
+  PositionDto
 } from '../../../core/models';
 
 @Component({
@@ -20,7 +20,7 @@ import {
 })
 export class SellComponent implements OnInit {
   private readonly orderSvc = inject(OrderService);
-  private readonly marketSvc = inject(MarketService);
+  private readonly portfolioSvc = inject(PortfolioService);
   private readonly fb = inject(FormBuilder);
   private readonly route = inject(ActivatedRoute);
 
@@ -32,11 +32,11 @@ export class SellComponent implements OnInit {
   preview = signal<SellOrderPreviewResponse | null>(null);
   result = signal<OrderResponse | null>(null);
 
-  stocks = signal<StockSummary[]>([]);
-  filteredStocks = signal<StockSummary[]>([]);
-  selectedStock = signal<StockSummary | null>(null);
+  positions = signal<PositionDto[]>([]);
+  filteredPositions = signal<PositionDto[]>([]);
+  selectedPosition = signal<PositionDto | null>(null);
   showDropdown = signal(false);
-  stockSearch = '';
+  positionSearch = '';
 
   form = this.fb.group({
     symbol: ['', [Validators.required, Validators.minLength(1)]],
@@ -45,19 +45,16 @@ export class SellComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadingStocks.set(true);
-    this.marketSvc.getStocks().subscribe({
-      next: stocks => {
-        this.stocks.set(stocks);
-        this.filteredStocks.set(stocks.slice(0, 12));
+    this.portfolioSvc.getPositions().subscribe({
+      next: response => {
+        const positions = response.positions.filter(p => p.quantity > 0);
+        this.positions.set(positions);
+        this.filteredPositions.set(positions.slice(0, 12));
         this.loadingStocks.set(false);
         const symbol = this.route.snapshot.queryParams['symbol'];
         if (symbol) {
-          const found = stocks.find(s => s.symbol === symbol);
-          if (found) {
-            this.selectStock(found);
-          } else {
-            this.form.patchValue({ symbol });
-          }
+          const found = positions.find(p => p.symbol === symbol);
+          if (found) this.selectPosition(found);
         }
       },
       error: () => this.loadingStocks.set(false)
@@ -65,11 +62,11 @@ export class SellComponent implements OnInit {
   }
 
   onSearchInput(value: string): void {
-    this.stockSearch = value;
+    this.positionSearch = value;
     const q = value.toLowerCase();
-    this.filteredStocks.set(
-      this.stocks()
-        .filter(s => s.symbol.toLowerCase().includes(q) || s.name.toLowerCase().includes(q))
+    this.filteredPositions.set(
+      this.positions()
+        .filter(p => p.symbol.toLowerCase().includes(q) || p.name.toLowerCase().includes(q))
         .slice(0, 12)
     );
     this.showDropdown.set(true);
@@ -79,21 +76,21 @@ export class SellComponent implements OnInit {
     setTimeout(() => this.showDropdown.set(false), 200);
   }
 
-  selectStock(stock: StockSummary): void {
-    this.selectedStock.set(stock);
-    this.stockSearch = stock.symbol;
-    this.form.patchValue({ symbol: stock.symbol });
+  selectPosition(pos: PositionDto): void {
+    this.selectedPosition.set(pos);
+    this.positionSearch = pos.symbol;
+    this.form.patchValue({ symbol: pos.symbol });
     this.showDropdown.set(false);
     this.preview.set(null);
     this.error.set(null);
   }
 
-  clearStock(): void {
-    this.selectedStock.set(null);
-    this.stockSearch = '';
+  clearPosition(): void {
+    this.selectedPosition.set(null);
+    this.positionSearch = '';
     this.form.patchValue({ symbol: '' });
     this.preview.set(null);
-    this.filteredStocks.set(this.stocks().slice(0, 12));
+    this.filteredPositions.set(this.positions().slice(0, 12));
   }
 
   onPreview(): void {
@@ -129,10 +126,10 @@ export class SellComponent implements OnInit {
         this.success.set(`Orden de venta #${data.id} creada exitosamente.`);
         this.loading.set(false);
         this.preview.set(null);
-        this.selectedStock.set(null);
-        this.stockSearch = '';
+        this.selectedPosition.set(null);
+        this.positionSearch = '';
         this.form.reset({ symbol: '', quantity: 1 });
-        this.filteredStocks.set(this.stocks().slice(0, 12));
+        this.filteredPositions.set(this.positions().slice(0, 12));
       },
       error: () => {
         this.error.set('Error al procesar la orden de venta. Intente nuevamente.');

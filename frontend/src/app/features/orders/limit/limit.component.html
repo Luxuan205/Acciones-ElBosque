@@ -38,16 +38,71 @@
       </div>
 
       <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+        <!-- Símbolo: texto libre para compra, dropdown de portafolio para venta -->
         <div class="form-group">
           <label for="symbol">Símbolo de la acción</label>
-          <input
-            id="symbol"
-            type="text"
-            formControlName="symbol"
-            class="form-control"
-            placeholder="Ej: AAPL, MSFT, GOOGL"
-            autocomplete="off"
-          />
+
+          @if (orderType() === 'BUY') {
+            <input
+              id="symbol"
+              type="text"
+              formControlName="symbol"
+              class="form-control"
+              placeholder="Ej: AAPL, MSFT, GOOGL"
+              autocomplete="off"
+            />
+          } @else {
+            @if (selectedPosition()) {
+              <div class="stock-selected">
+                <div class="stock-selected__info">
+                  <span class="serif" style="font-size:1.05rem;font-weight:600">
+                    {{ selectedPosition()!.symbol }}
+                  </span>
+                  <span class="muted" style="font-size:0.82rem">{{ selectedPosition()!.name }}</span>
+                </div>
+                <div class="stock-selected__price">
+                  <span class="muted tiny">{{ selectedPosition()!.quantity }} acciones disponibles</span>
+                </div>
+                <button type="button" class="stock-selected__clear" (click)="clearPosition()" aria-label="Cambiar acción">✕</button>
+              </div>
+            } @else {
+              <div class="stock-selector">
+                <input
+                  type="text"
+                  class="form-control"
+                  placeholder="Buscar en tu portafolio..."
+                  [value]="positionSearch"
+                  (input)="onPositionSearch($any($event.target).value)"
+                  (focus)="showDropdown.set(true)"
+                  (blur)="onPositionBlur()"
+                  autocomplete="off"
+                />
+                @if (loadingPositions()) {
+                  <div class="stock-dropdown stock-dropdown--loading">
+                    <span class="spinner spinner--sm"></span>
+                    <span class="muted tiny" style="margin-left:0.5rem">Cargando portafolio...</span>
+                  </div>
+                } @else if (!loadingPositions() && positions().length === 0) {
+                  <div class="stock-dropdown" style="padding:1rem;text-align:center">
+                    <span class="muted tiny">No tienes acciones en tu portafolio.</span>
+                  </div>
+                } @else if (showDropdown() && filteredPositions().length > 0) {
+                  <div class="stock-dropdown" role="listbox">
+                    @for (p of filteredPositions(); track p.symbol) {
+                      <button type="button" class="stock-option" role="option"
+                              (mousedown)="selectPosition(p)">
+                        <span class="stock-option__symbol serif">{{ p.symbol }}</span>
+                        <span class="stock-option__name muted">{{ p.name }}</span>
+                        <span class="muted tiny">{{ p.quantity }} acc.</span>
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          }
+
           @if (form.get('symbol')?.invalid && form.get('symbol')?.touched) {
             <span class="form-error">El símbolo es requerido.</span>
           }
@@ -55,12 +110,18 @@
 
         <div class="form-group">
           <label for="quantity">Cantidad de acciones</label>
+          @if (orderType() === 'SELL' && selectedPosition()) {
+            <span class="muted tiny" style="display:block;margin-bottom:0.25rem">
+              Disponibles: {{ selectedPosition()!.quantity }}
+            </span>
+          }
           <input
             id="quantity"
             type="number"
             formControlName="quantity"
             class="form-control"
             min="1"
+            [max]="orderType() === 'SELL' && selectedPosition() ? selectedPosition()!.quantity : null"
           />
           @if (form.get('quantity')?.invalid && form.get('quantity')?.touched) {
             <span class="form-error">La cantidad debe ser al menos 1.</span>
