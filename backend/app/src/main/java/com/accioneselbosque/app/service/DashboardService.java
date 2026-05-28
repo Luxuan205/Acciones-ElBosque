@@ -1,17 +1,24 @@
 package com.accioneselbosque.app.service;
 
 import com.accioneselbosque.app.dto.AdminLinkDto;
+import com.accioneselbosque.app.dto.AdminTransactionDto;
 import com.accioneselbosque.app.dto.DashboardPeriod;
 import com.accioneselbosque.app.dto.FinancialSummaryDto;
 import com.accioneselbosque.app.dto.OperationalMetricsDto;
 import com.accioneselbosque.auth.model.AccountStatus;
+import com.accioneselbosque.auth.model.Investor;
 import com.accioneselbosque.auth.model.SubscriptionType;
 import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.configuration.service.MarketStatusService;
 import com.accioneselbosque.orders.model.OrderStatus;
 import com.accioneselbosque.orders.repository.OrderRepository;
+import com.accioneselbosque.portfolio.model.Transaction;
 import com.accioneselbosque.portfolio.repository.TransactionRepository;
+import com.accioneselbosque.portfolio.repository.TransactionSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +26,10 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -75,5 +86,37 @@ public class DashboardService {
                 new AdminLinkDto("Parámetros Globales", "/config/parameters",
                         "Configuración de parámetros del sistema")
         );
+    }
+
+    @Transactional(readOnly = true)
+    public Page<AdminTransactionDto> getAdminTransactions(
+            LocalDate from, LocalDate to, Long investorId,
+            String symbol, String type, Pageable pageable) {
+
+        Specification<Transaction> spec =
+                TransactionSpecification.withFilters(from, to, investorId, symbol, type);
+
+        Page<Transaction> page = transactionRepository.findAll(spec, pageable);
+
+        Set<Long> investorIds = page.getContent().stream()
+                .map(Transaction::getInvestorId)
+                .collect(Collectors.toSet());
+
+        Map<Long, Investor> investors = investorRepository.findAllById(investorIds).stream()
+                .collect(Collectors.toMap(Investor::getId, Function.identity()));
+
+        return page.map(t -> {
+            Investor inv = investors.get(t.getInvestorId());
+            String name  = inv != null ? inv.getFullName() : "—";
+            String email = inv != null ? inv.getEmail()    : "—";
+            return new AdminTransactionDto(
+                    t.getId(), name, email,
+                    t.getSymbol(),
+                    t.getTransactionType().name(),
+                    t.getQuantity(),
+                    t.getGrossAmount(),
+                    t.getCommission(),
+                    t.getExecutedAt());
+        });
     }
 }

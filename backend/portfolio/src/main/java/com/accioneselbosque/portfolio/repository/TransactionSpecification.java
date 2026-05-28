@@ -40,12 +40,12 @@ public class TransactionSpecification {
     }
 
     private static Specification<Transaction> byType(String type) {
-        if (type == null || type.isBlank()) return null;
+        if (type == null || type.isBlank()) return (root, query, cb) -> null;
         try {
             TransactionType tt = TransactionType.valueOf(type.trim().toUpperCase());
             return (root, query, cb) -> cb.equal(root.get("transactionType"), tt);
         } catch (IllegalArgumentException e) {
-            return null;
+            return (root, query, cb) -> null;
         }
     }
 }
