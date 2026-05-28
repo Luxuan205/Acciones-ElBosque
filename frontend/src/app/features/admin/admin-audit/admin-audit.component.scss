@@ -3,6 +3,11 @@
   padding: 1.5rem 0;
 }
 
+.clickable-row {
+  cursor: pointer;
+  &:hover td { background-color: var(--color-hover, #f3f4f6); }
+}
+
 .filter-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));

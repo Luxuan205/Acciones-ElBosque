@@ -1,6 +1,7 @@
 import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AdminService } from '../../../core/services/admin.service';
 import { AuditEventDto, AuditFilterDto } from '../../../core/models';
 
@@ -13,6 +14,7 @@ import { AuditEventDto, AuditFilterDto } from '../../../core/models';
 })
 export class AdminAuditComponent implements OnInit {
   private readonly adminSvc = inject(AdminService);
+  private readonly router = inject(Router);
 
   events = signal<AuditEventDto[]>([]);
   totalElements = signal(0);
@@ -83,6 +85,10 @@ export class AdminAuditComponent implements OnInit {
 
   formatDate(dateStr: string): string {
     return new Date(dateStr).toLocaleString('es-CO', { timeZone: 'America/Bogota' });
+  }
+
+  openDetail(event: AuditEventDto): void {
+    this.router.navigate(['/admin/audit', event.id], { state: { event } });
   }
 
   clearFilters(): void {

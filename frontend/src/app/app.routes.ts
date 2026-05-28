@@ -200,6 +200,13 @@ export const routes: Routes = [
       import('./features/admin/admin-audit/admin-audit.component').then(m => m.AdminAuditComponent)
   },
   {
+    path: 'admin/audit/:id',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./features/admin/admin-audit-detail/admin-audit-detail.component')
+        .then(m => m.AdminAuditDetailComponent)
+  },
+  {
     path: 'admin/transactions',
     canActivate: [authGuard, adminGuard],
     loadComponent: () =>

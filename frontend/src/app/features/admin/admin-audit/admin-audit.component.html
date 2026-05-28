@@ -98,7 +98,7 @@
             </thead>
             <tbody>
               @for (event of events(); track event.id) {
-                <tr>
+                <tr class="clickable-row" (click)="openDetail(event)" title="Ver detalle">
                   <td class="text-muted">#{{ event.id }}</td>
                   <td><strong>{{ event.eventType }}</strong></td>
                   <td class="text-muted">{{ event.investorId ?? '—' }}</td>

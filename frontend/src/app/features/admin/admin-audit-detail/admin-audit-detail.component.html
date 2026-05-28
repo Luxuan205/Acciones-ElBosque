@@ -1,0 +1,129 @@
+<div class="container">
+  @if (event(); as ev) {
+    <!-- Header -->
+    <div class="page-header">
+      <div class="flex-between">
+        <div>
+          <a routerLink="/admin/audit" class="back-link">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M10 4L6 8l4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Volver a Auditoría
+          </a>
+          <h1 class="card__title mt-1">Detalle de Evento #{{ ev.id }}</h1>
+        </div>
+        <div>
+          @switch (ev.result) {
+            @case ('SUCCESS') { <span class="badge-green badge-lg">{{ ev.result }}</span> }
+            @case ('FAILURE') { <span class="badge-red badge-lg">{{ ev.result }}</span> }
+            @case ('ERROR') { <span class="badge-orange badge-lg">{{ ev.result }}</span> }
+            @default { <span class="badge-lg">{{ ev.result }}</span> }
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="detail-grid mt-3">
+
+      <!-- Acción -->
+      <div class="card detail-card">
+        <h3 class="detail-card__title">Acción Realizada</h3>
+        <div class="detail-row">
+          <span class="detail-label">Tipo de Evento</span>
+          <strong class="detail-value">{{ ev.eventType }}</strong>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Detalle</span>
+          <span class="detail-value">{{ ev.detail || '—' }}</span>
+        </div>
+        @if (ev.referenceType) {
+          <div class="detail-row">
+            <span class="detail-label">Referencia</span>
+            <span class="detail-value">
+              {{ ev.referenceType }}@if (ev.referenceId) { &nbsp;#{{ ev.referenceId }} }
+            </span>
+          </div>
+        }
+        <div class="detail-row">
+          <span class="detail-label">Fecha y Hora</span>
+          <span class="detail-value">{{ formatDate(ev.occurredAt) }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Dirección IP</span>
+          <span class="detail-value mono">{{ ev.ipAddress || '—' }}</span>
+        </div>
+      </div>
+
+      <!-- Usuario afectado -->
+      <div class="card detail-card">
+        <h3 class="detail-card__title">Usuario Afectado</h3>
+        @if (!ev.investorId) {
+          <p class="text-muted">Sin usuario asociado.</p>
+        } @else if (loadingInvestor()) {
+          <div class="loading-container"><div class="spinner"></div></div>
+        } @else {
+          @if (investor(); as inv) {
+            <div class="detail-row">
+              <span class="detail-label">ID</span>
+              <span class="detail-value">#{{ inv.id }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Nombre</span>
+              <strong class="detail-value">{{ inv.fullName }}</strong>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Cédula</span>
+              <span class="detail-value mono">{{ inv.documentNumber }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Correo</span>
+              <span class="detail-value">{{ inv.email }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Estado</span>
+              <span class="detail-value">{{ inv.accountStatus }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="detail-label">Rol</span>
+              <span class="detail-value">{{ inv.role }}</span>
+            </div>
+          } @else {
+            <p class="text-muted">ID: #{{ ev.investorId }}</p>
+          }
+        }
+      </div>
+
+      <!-- Realizado por -->
+      @if (ev.performedBy) {
+        <div class="card detail-card">
+          <h3 class="detail-card__title">Realizado Por</h3>
+          @if (ev.performedBy === ev.investorId) {
+            <p class="text-muted">El mismo usuario.</p>
+          } @else {
+            @if (performedByUser(); as admin) {
+              <div class="detail-row">
+                <span class="detail-label">ID</span>
+                <span class="detail-value">#{{ admin.id }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Nombre</span>
+                <strong class="detail-value">{{ admin.fullName }}</strong>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Cédula</span>
+                <span class="detail-value mono">{{ admin.documentNumber }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Rol</span>
+                <span class="detail-value">{{ admin.role }}</span>
+              </div>
+            } @else {
+              <p class="text-muted">ID: #{{ ev.performedBy }}</p>
+            }
+          }
+        </div>
+      }
+
+    </div>
+  }
+</div>
