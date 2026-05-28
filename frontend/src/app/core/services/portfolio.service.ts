@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import {
   BalanceSummaryResponse,
   FundMovementPageResponse,
+  PortfolioHistoryResponse,
   PortfolioPositionsResponse,
   PortfolioReportDto
 } from '../models';
@@ -27,6 +28,11 @@ export class PortfolioService {
 
   getPositions(): Observable<PortfolioPositionsResponse> {
     return this.http.get<PortfolioPositionsResponse>(`${this.base}/portfolio/positions`);
+  }
+
+  getPortfolioHistory(period: string): Observable<PortfolioHistoryResponse> {
+    const params = new HttpParams().set('period', period);
+    return this.http.get<PortfolioHistoryResponse>(`${this.base}/portfolio/history`, { params });
   }
 
   getReport(period: string): Observable<PortfolioReportDto> {

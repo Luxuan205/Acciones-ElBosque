@@ -218,6 +218,15 @@ export interface PortfolioPositionsResponse {
   unrealizedGainPercent: number;
 }
 
+export interface PortfolioHistoryPoint {
+  date: string;       // ISO date string: "2026-05-28"
+  totalValue: number;
+}
+
+export interface PortfolioHistoryResponse {
+  points: PortfolioHistoryPoint[];
+}
+
 export interface TransactionDto {
   id: number;
   transactionType: string;
