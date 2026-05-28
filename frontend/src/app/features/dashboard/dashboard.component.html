@@ -83,10 +83,13 @@
         <div class="almanac__chart-row">
           <div class="card card--flush" style="padding:1.5rem">
             <div class="almanac__period-switcher">
-              <button class="almanac__period-btn almanac__period-btn--active num tiny">30D</button>
-              <button class="almanac__period-btn num tiny">7D</button>
-              <button class="almanac__period-btn num tiny">3M</button>
-              <button class="almanac__period-btn num tiny">1A</button>
+              @for (p of periods; track p.label) {
+                <button
+                  class="almanac__period-btn num tiny"
+                  [class.almanac__period-btn--active]="selectedPeriod() === p.label"
+                  (click)="selectPeriod(p.label)"
+                >{{ p.label }}</button>
+              }
             </div>
             <apx-chart
               [series]="portfolioSeries"

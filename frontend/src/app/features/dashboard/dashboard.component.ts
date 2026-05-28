@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
@@ -58,6 +58,14 @@ export class DashboardComponent implements OnInit {
   loadingCharts = signal(true);
 
   today = new Date();
+
+  readonly periods = [
+    { label: '30D', days: 30 },
+    { label: '7D',  days: 7  },
+    { label: '3M',  days: 90 },
+    { label: '1A',  days: 365 },
+  ];
+  selectedPeriod = signal<string>('30D');
 
   // ── Portfolio line chart ───────────────────────────────────
   portfolioSeries: ApexAxisChartSeries = [];
@@ -189,18 +197,29 @@ export class DashboardComponent implements OnInit {
     this.buildSparklines();
   }
 
-  private buildPortfolioChart(balance: BalanceSummaryResponse | null): void {
+  selectPeriod(label: string): void {
+    this.selectedPeriod.set(label);
+    const days = this.periods.find(p => p.label === label)?.days ?? 30;
+    this.buildPortfolioChart(this.balance(), days);
+  }
+
+  private buildPortfolioChart(balance: BalanceSummaryResponse | null, days = 30): void {
     const base = balance?.totalPortfolioValue ?? 1_000_000;
-    const days = 30;
     const categories: string[] = [];
     const values: number[] = [];
     let current = base * 0.88;
     const now = new Date();
 
+    const dateOpts: Intl.DateTimeFormatOptions = days <= 30
+      ? { day: '2-digit', month: 'short' }
+      : days <= 90
+        ? { day: '2-digit', month: 'short' }
+        : { month: 'short', year: '2-digit' };
+
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
-      categories.push(d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' }));
+      categories.push(d.toLocaleDateString('es-CO', dateOpts));
       current = current * (1 + (Math.random() * 0.022 - 0.006));
       if (i === 0) current = base;
       values.push(Math.round(current));
