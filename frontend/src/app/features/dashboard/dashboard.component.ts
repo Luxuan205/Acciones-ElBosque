@@ -22,7 +22,8 @@ import { OrderService } from '../../core/services/order.service';
 import { WatchlistService } from '../../core/services/watchlist.service';
 import {
   BalanceSummaryResponse, ProfileResponse, Order,
-  PortfolioPositionsResponse, StockSummary, WatchlistItem
+  PortfolioPositionsResponse, StockSummary, WatchlistItem,
+  PortfolioHistoryResponse
 } from '../../core/models';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -191,6 +192,14 @@ export class DashboardComponent implements OnInit {
       this.loadingBalance.set(false);
       this.buildPortfolioChart(balance);
       this.buildDonutChart(positions);
+      this.portfolio.getPortfolioHistory('30D').pipe(
+        catchError(() => of({ points: [] } as PortfolioHistoryResponse))
+      ).subscribe(history => {
+        if (history.points.length > 0) {
+          this.buildPortfolioChartFromHistory(history);
+        }
+        // If empty, simulated chart from buildPortfolioChart() remains
+      });
       this.loadingCharts.set(false);
     });
 
@@ -199,8 +208,25 @@ export class DashboardComponent implements OnInit {
 
   selectPeriod(label: string): void {
     this.selectedPeriod.set(label);
-    const days = this.periods.find(p => p.label === label)?.days ?? 30;
-    this.buildPortfolioChart(this.balance(), days);
+    this.portfolio.getPortfolioHistory(label).pipe(
+      catchError(() => of({ points: [] } as PortfolioHistoryResponse))
+    ).subscribe(history => {
+      if (history.points.length > 0) {
+        this.buildPortfolioChartFromHistory(history);
+      } else {
+        const days = this.periods.find(p => p.label === label)?.days ?? 30;
+        this.buildPortfolioChart(this.balance(), days);
+      }
+    });
+  }
+
+  private buildPortfolioChartFromHistory(history: PortfolioHistoryResponse): void {
+    const categories = history.points.map(p =>
+      new Date(p.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })
+    );
+    const values = history.points.map(p => Math.round(p.totalValue));
+    this.portfolioSeries = [{ name: 'Valor portafolio', data: values, color: '#4aaa60' }];
+    this.portfolioXAxis = { ...this.portfolioXAxis, categories };
   }
 
   private buildPortfolioChart(balance: BalanceSummaryResponse | null, days = 30): void {
