@@ -69,6 +69,10 @@ export class AuthService {
     return this.http.put<Record<string, unknown>>(`${this.base}/auth/preferences`, req);
   }
 
+  deleteAccount(): Observable<void> {
+    return this.http.delete<void>(`${this.base}/auth/account`);
+  }
+
   logout(): void {
     this.storage.clear();
   }

@@ -2,6 +2,7 @@ package com.accioneselbosque.auth.service;
 
 import com.accioneselbosque.auth.dto.LoginRequest;
 import com.accioneselbosque.auth.dto.LoginResponse;
+import com.accioneselbosque.auth.exception.AccountDeletedException;
 import com.accioneselbosque.auth.exception.AccountLockedException;
 import com.accioneselbosque.auth.exception.AccountSuspendedException;
 import com.accioneselbosque.auth.exception.InvalidCredentialsException;
@@ -74,6 +75,7 @@ public class LoginService {
         switch (investor.getAccountStatus()) {
             case BLOCKED -> throw new AccountLockedException();
             case SUSPENDED -> throw new AccountSuspendedException();
+            case DELETED -> throw new AccountDeletedException();
             default -> {
                 // ACTIVE, PENDING, INACTIVE: proceed
             }

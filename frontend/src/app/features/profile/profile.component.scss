@@ -23,3 +23,38 @@
 .text-right {
   text-align: right;
 }
+
+.danger-zone {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid #fee2e2;
+  border-radius: var(--r-lg, 8px);
+  background: #fff5f5;
+
+  &__title {
+    font-size: 1rem;
+    color: #b91c1c;
+    margin: 0 0 0.5rem;
+  }
+
+  &__desc {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 1rem;
+    line-height: 1.5;
+  }
+}
+
+.delete-confirm {
+  &__warning {
+    font-size: 0.875rem;
+    color: #b91c1c;
+    margin-bottom: 0.75rem;
+  }
+
+  &__actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+  }
+}

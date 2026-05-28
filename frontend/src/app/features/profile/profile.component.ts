@@ -1,6 +1,6 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { AuthService } from '../../core/services/auth.service';
 import { ProfileResponse } from '../../core/models';
@@ -14,6 +14,7 @@ import { ProfileResponse } from '../../core/models';
 })
 export class ProfileComponent implements OnInit {
   private authService = inject(AuthService);
+  private router = inject(Router);
   private fb = inject(FormBuilder);
 
   profile = signal<ProfileResponse | null>(null);
@@ -22,6 +23,8 @@ export class ProfileComponent implements OnInit {
   saving = signal(false);
   error = signal<string | null>(null);
   success = signal<string | null>(null);
+  showDeleteConfirm = signal(false);
+  deleting = signal(false);
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.minLength(2)]],
@@ -72,6 +75,32 @@ export class ProfileComponent implements OnInit {
       error: () => {
         this.error.set('Error al actualizar el perfil.');
         this.saving.set(false);
+      },
+    });
+  }
+
+  confirmDelete(): void {
+    this.showDeleteConfirm.set(true);
+    this.error.set(null);
+  }
+
+  cancelDelete(): void {
+    this.showDeleteConfirm.set(false);
+  }
+
+  deleteAccount(): void {
+    this.deleting.set(true);
+    this.error.set(null);
+    this.authService.deleteAccount().subscribe({
+      next: () => {
+        this.authService.logout();
+        this.router.navigate(['/login']);
+      },
+      error: (err) => {
+        const msg = err?.error?.message ?? 'No se pudo eliminar la cuenta.';
+        this.error.set(msg);
+        this.showDeleteConfirm.set(false);
+        this.deleting.set(false);
       },
     });
   }

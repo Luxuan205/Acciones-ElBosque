@@ -92,6 +92,18 @@ public class AuthExceptionHandler {
                 .body(Map.of("error", "ACCOUNT_SUSPENDED", "message", "Tu cuenta ha sido suspendida."));
     }
 
+    @ExceptionHandler(AccountDeletedException.class)
+    public ResponseEntity<Map<String, String>> handleAccountDeleted(AccountDeletedException ex) {
+        return ResponseEntity.status(HttpStatus.GONE)
+                .body(Map.of("error", "ACCOUNT_DELETED", "message", "Esta cuenta ha sido eliminada."));
+    }
+
+    @ExceptionHandler(CannotDeleteAccountException.class)
+    public ResponseEntity<Map<String, String>> handleCannotDeleteAccount(CannotDeleteAccountException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", "CANNOT_DELETE_ACCOUNT", "message", ex.getMessage()));
+    }
+
     @ExceptionHandler(InvalidOtpException.class)
     public ResponseEntity<Map<String, String>> handleInvalidOtp(InvalidOtpException ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)

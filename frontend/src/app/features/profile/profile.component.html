@@ -116,6 +116,38 @@
       <a [routerLink]="['/profile/password']" class="btn-outline btn-sm">Cambiar contraseña</a>
       <a [routerLink]="['/preferences']" class="btn-outline btn-sm">Preferencias</a>
     </div>
+
+    <div class="divider"></div>
+    <div class="danger-zone">
+      <h3 class="danger-zone__title">Zona de peligro</h3>
+      <p class="danger-zone__desc">
+        Para eliminar tu cuenta debes tener saldo $0 y ninguna acción en tu portafolio.
+        Esta acción es irreversible.
+      </p>
+      @if (!showDeleteConfirm()) {
+        <button class="btn-danger btn-sm" (click)="confirmDelete()" [disabled]="deleting()">
+          Eliminar cuenta
+        </button>
+      } @else {
+        <div class="delete-confirm">
+          <p class="delete-confirm__warning">
+            ¿Estás seguro? Esta acción cerrará tu sesión y no podrás volver a acceder a esta cuenta.
+          </p>
+          <div class="delete-confirm__actions">
+            <button class="btn-danger btn-sm" (click)="deleteAccount()" [disabled]="deleting()">
+              @if (deleting()) {
+                <span class="spinner spinner--sm"></span>
+              } @else {
+                Sí, eliminar mi cuenta
+              }
+            </button>
+            <button class="btn-outline btn-sm" (click)="cancelDelete()" [disabled]="deleting()">
+              Cancelar
+            </button>
+          </div>
+        </div>
+      }
+    </div>
     }
   }
 </div>
