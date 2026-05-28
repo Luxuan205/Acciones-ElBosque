@@ -19,7 +19,9 @@ import {
   MarketHolidayDto,
   AuditEventDto,
   AuditFilterDto,
-  Page
+  Page,
+  AdminTransactionDto,
+  AdminTransactionFilterDto
 } from '../models';
 
 @Injectable({ providedIn: 'root' })
@@ -127,5 +129,19 @@ export class AdminService {
     if (filters.page !== undefined) params = params.set('page', filters.page.toString());
     if (filters.size !== undefined) params = params.set('size', filters.size.toString());
     return this.http.get<Page<AuditEventDto>>(`${this.base}/audit/events`, { params });
+  }
+
+  // ── Admin Transactions ─────────────────────────────────────
+  getAdminTransactions(filters: AdminTransactionFilterDto = {}): Observable<Page<AdminTransactionDto>> {
+    let params = new HttpParams();
+    if (filters.from)                    params = params.set('from',        filters.from);
+    if (filters.to)                      params = params.set('to',          filters.to);
+    if (filters.investorId !== undefined) params = params.set('investorId', filters.investorId.toString());
+    if (filters.symbol)                  params = params.set('symbol',      filters.symbol);
+    if (filters.type)                    params = params.set('type',        filters.type);
+    if (filters.page !== undefined)      params = params.set('page',        filters.page.toString());
+    if (filters.size !== undefined)      params = params.set('size',        filters.size.toString());
+    return this.http.get<Page<AdminTransactionDto>>(
+      `${this.base}/admin/dashboard/transactions`, { params });
   }
 }
