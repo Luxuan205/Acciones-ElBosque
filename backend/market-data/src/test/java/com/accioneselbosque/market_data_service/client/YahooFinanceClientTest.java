@@ -34,22 +34,21 @@ class YahooFinanceClientTest {
     void fetchQuotes_happyPath_returnsMappedQuotes() {
         String body = """
             {
-              "quoteResponse": {
+              "chart": {
                 "result": [
                   {
-                    "symbol": "ECOPETROL.CL",
-                    "regularMarketPrice": 1950.0,
-                    "regularMarketPreviousClose": 1930.0,
-                    "regularMarketChange": 20.0,
-                    "regularMarketChangePercent": 1.0363,
-                    "regularMarketVolume": 5000000
+                    "meta": {
+                      "regularMarketPrice": 1950.0,
+                      "chartPreviousClose": 1930.0,
+                      "regularMarketVolume": 5000000
+                    }
                   }
                 ],
                 "error": null
               }
             }
             """;
-        mockServer.expect(requestTo(BASE_URL + "/v7/finance/quote?symbols=ECOPETROL.CL"))
+        mockServer.expect(requestTo(BASE_URL + "/v8/finance/chart/ECOPETROL.CL?range=1d&interval=1d"))
                 .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
 
         List<MarketQuote> quotes = client.fetchQuotes(List.of("ECOPETROL.CL"));
@@ -66,7 +65,7 @@ class YahooFinanceClientTest {
 
     @Test
     void fetchQuotes_httpError_throwsYahooFinanceException() {
-        mockServer.expect(requestTo(BASE_URL + "/v7/finance/quote?symbols=ECOPETROL.CL"))
+        mockServer.expect(requestTo(BASE_URL + "/v8/finance/chart/ECOPETROL.CL?range=1d&interval=1d"))
                 .andRespond(withServerError());
 
         assertThatThrownBy(() -> client.fetchQuotes(List.of("ECOPETROL.CL")))
@@ -76,31 +75,42 @@ class YahooFinanceClientTest {
 
     @Test
     void fetchQuotes_missingPrice_skipsElementAndReturnsRest() {
-        String body = """
+        String validBody = """
             {
-              "quoteResponse": {
+              "chart": {
                 "result": [
                   {
-                    "symbol": "ECOPETROL.CL",
-                    "regularMarketPrice": 1950.0,
-                    "regularMarketPreviousClose": 1930.0,
-                    "regularMarketChange": 20.0,
-                    "regularMarketChangePercent": 1.0363,
-                    "regularMarketVolume": 5000000
-                  },
-                  {
-                    "symbol": "PFBCOLOM.CL",
-                    "regularMarketPreviousClose": 39150.0
+                    "meta": {
+                      "regularMarketPrice": 1950.0,
+                      "chartPreviousClose": 1930.0,
+                      "regularMarketVolume": 5000000
+                    }
                   }
                 ],
                 "error": null
               }
             }
             """;
-        mockServer.expect(requestTo(BASE_URL + "/v7/finance/quote?symbols=ECOPETROL.CL,PFBCOLOM.CL"))
-                .andRespond(withSuccess(body, MediaType.APPLICATION_JSON));
+        String missingPriceBody = """
+            {
+              "chart": {
+                "result": [
+                  {
+                    "meta": {
+                      "chartPreviousClose": 100.0
+                    }
+                  }
+                ],
+                "error": null
+              }
+            }
+            """;
+        mockServer.expect(requestTo(BASE_URL + "/v8/finance/chart/ECOPETROL.CL?range=1d&interval=1d"))
+                .andRespond(withSuccess(validBody, MediaType.APPLICATION_JSON));
+        mockServer.expect(requestTo(BASE_URL + "/v8/finance/chart/GEB.CL?range=1d&interval=1d"))
+                .andRespond(withSuccess(missingPriceBody, MediaType.APPLICATION_JSON));
 
-        List<MarketQuote> quotes = client.fetchQuotes(List.of("ECOPETROL.CL", "PFBCOLOM.CL"));
+        List<MarketQuote> quotes = client.fetchQuotes(List.of("ECOPETROL.CL", "GEB.CL"));
 
         assertThat(quotes).hasSize(1);
         assertThat(quotes.get(0).symbol()).isEqualTo("ECOPETROL.CL");
