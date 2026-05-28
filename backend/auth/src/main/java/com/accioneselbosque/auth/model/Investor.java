@@ -45,7 +45,7 @@ public class Investor {
     private LocalDateTime subscriptionExpiresAt;
 
     @Column(name = "available_balance", nullable = false, precision = 18, scale = 2)
-    private BigDecimal availableBalance = BigDecimal.valueOf(10_000_000);
+    private BigDecimal availableBalance = BigDecimal.valueOf(5_000_000);
 
     @Enumerated(EnumType.STRING)
     @Column(name = "role", nullable = false, length = 20)

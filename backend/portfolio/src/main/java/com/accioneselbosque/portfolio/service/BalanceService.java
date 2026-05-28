@@ -1,5 +1,6 @@
 package com.accioneselbosque.portfolio.service;
 
+import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.portfolio.dto.BalanceSummaryResponse;
 import com.accioneselbosque.portfolio.model.AccountBalance;
 import com.accioneselbosque.portfolio.model.Position;
@@ -23,6 +24,7 @@ public class BalanceService {
     private final AccountBalanceRepository accountBalanceRepository;
     private final PositionRepository positionRepository;
     private final StockSnapshotService stockSnapshotService;
+    private final InvestorRepository investorRepository;
 
     @PersistenceContext
     private EntityManager em;
@@ -31,9 +33,12 @@ public class BalanceService {
     public BalanceSummaryResponse getBalance(Long investorId) {
         AccountBalance balance = accountBalanceRepository.findByInvestorId(investorId)
                 .orElseGet(() -> {
+                    BigDecimal initialBalance = investorRepository.findById(investorId)
+                            .map(inv -> inv.getAvailableBalance())
+                            .orElse(BigDecimal.valueOf(5_000_000));
                     AccountBalance newBalance = AccountBalance.builder()
                             .investorId(investorId)
-                            .totalBalance(BigDecimal.ZERO)
+                            .totalBalance(initialBalance)
                             .currency("COP")
                             .build();
                     return accountBalanceRepository.save(newBalance);
@@ -41,7 +46,8 @@ public class BalanceService {
 
         BigDecimal reservedForOrders = (BigDecimal) em.createNativeQuery(
                 "SELECT COALESCE(SUM(total_estimated), 0) FROM market_order " +
-                "WHERE investor_id = :id AND status IN ('PENDING', 'QUEUED')")
+                "WHERE investor_id = :id AND status IN ('PENDING', 'QUEUED') " +
+                "AND order_type IN ('MARKET_BUY', 'LIMIT_BUY')")
                 .setParameter("id", investorId)
                 .getSingleResult();
 

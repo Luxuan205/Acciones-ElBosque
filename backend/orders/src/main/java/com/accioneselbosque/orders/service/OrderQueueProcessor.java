@@ -1,5 +1,6 @@
 package com.accioneselbosque.orders.service;
 
+import com.accioneselbosque.auth.repository.InvestorRepository;
 import com.accioneselbosque.market_data_service.service.StockSnapshotService;
 import com.accioneselbosque.orders.model.Order;
 import com.accioneselbosque.orders.model.OrderStatus;
@@ -34,6 +35,7 @@ public class OrderQueueProcessor {
     private final AccountBalanceRepository accountBalanceRepository;
     private final BalanceReservationRepository balanceReservationRepository;
     private final TitleReservationRepository titleReservationRepository;
+    private final InvestorRepository investorRepository;
 
     @Autowired
     @Lazy
@@ -78,8 +80,16 @@ public class OrderQueueProcessor {
                 order.getQuantity(), execPrice, order.getCommission(), order.getId());
 
         AccountBalance balance = accountBalanceRepository.findByInvestorId(order.getInvestorId())
-                .orElseGet(() -> accountBalanceRepository.save(AccountBalance.builder()
-                        .investorId(order.getInvestorId()).totalBalance(BigDecimal.ZERO).currency("COP").build()));
+                .orElseGet(() -> {
+                    BigDecimal initialBalance = investorRepository.findById(order.getInvestorId())
+                            .map(inv -> inv.getAvailableBalance())
+                            .orElse(BigDecimal.valueOf(5_000_000));
+                    return accountBalanceRepository.save(AccountBalance.builder()
+                            .investorId(order.getInvestorId())
+                            .totalBalance(initialBalance)
+                            .currency("COP")
+                            .build());
+                });
 
         BigDecimal gross = execPrice.multiply(BigDecimal.valueOf(order.getQuantity()));
         if (txType == TransactionType.BUY) {

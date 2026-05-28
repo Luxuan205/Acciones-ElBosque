@@ -17,6 +17,8 @@ import com.accioneselbosque.orders.model.OrderStatus;
 import com.accioneselbosque.orders.model.OrderType;
 import com.accioneselbosque.orders.repository.BalanceReservationRepository;
 import com.accioneselbosque.orders.repository.OrderRepository;
+import com.accioneselbosque.portfolio.model.AccountBalance;
+import com.accioneselbosque.portfolio.repository.AccountBalanceRepository;
 import com.accioneselbosque.audit.model.AuditEventRecord;
 import com.accioneselbosque.audit.model.AuditEventType;
 import com.accioneselbosque.audit.model.AuditResult;
@@ -41,6 +43,7 @@ public class MarketOrderService {
     private final BalanceReservationRepository balanceReservationRepository;
     private final CommissionCalculatorService commissionCalculatorService;
     private final AuditService auditService;
+    private final AccountBalanceRepository accountBalanceRepository;
 
     private static final int MAX_QUEUED_ORDERS = 10;
 
@@ -81,7 +84,14 @@ public class MarketOrderService {
                 .map(BalanceReservation::getAmount)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal available = investor.getAvailableBalance().subtract(totalReserved);
+        AccountBalance accountBalance = accountBalanceRepository.findByInvestorId(investorId)
+                .orElseGet(() -> accountBalanceRepository.save(AccountBalance.builder()
+                        .investorId(investorId)
+                        .totalBalance(investor.getAvailableBalance())
+                        .currency("COP")
+                        .build()));
+
+        BigDecimal available = accountBalance.getTotalBalance().subtract(totalReserved);
 
         if (available.compareTo(preview.totalEstimated()) < 0) {
             throw new InsufficientBalanceException();
