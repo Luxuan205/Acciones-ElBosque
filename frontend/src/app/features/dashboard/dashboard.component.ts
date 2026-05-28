@@ -20,6 +20,7 @@ import { AuthService } from '../../core/services/auth.service';
 import { PortfolioService } from '../../core/services/portfolio.service';
 import { OrderService } from '../../core/services/order.service';
 import { WatchlistService } from '../../core/services/watchlist.service';
+import { MarketService } from '../../core/services/market.service';
 import {
   BalanceSummaryResponse, ProfileResponse, Order,
   PortfolioPositionsResponse, StockSummary, WatchlistItem,
@@ -46,6 +47,7 @@ export class DashboardComponent implements OnInit {
   private readonly portfolio = inject(PortfolioService);
   private readonly orderSvc = inject(OrderService);
   private readonly watchlistSvc = inject(WatchlistService);
+  private readonly marketSvc = inject(MarketService);
 
   profile = signal<ProfileResponse | null>(null);
   balance = signal<BalanceSummaryResponse | null>(null);
@@ -230,32 +232,6 @@ export class DashboardComponent implements OnInit {
     this.portfolioXAxis = { ...this.portfolioXAxis, categories };
   }
 
-  private buildPortfolioChart(balance: BalanceSummaryResponse | null, days = 30): void {
-    const base = balance?.totalPortfolioValue ?? 1_000_000;
-    const categories: string[] = [];
-    const values: number[] = [];
-    let current = base * 0.88;
-    const now = new Date();
-
-    const dateOpts: Intl.DateTimeFormatOptions = days <= 30
-      ? { day: '2-digit', month: 'short' }
-      : days <= 90
-        ? { day: '2-digit', month: 'short' }
-        : { month: 'short', year: '2-digit' };
-
-    for (let i = days - 1; i >= 0; i--) {
-      const d = new Date(now);
-      d.setDate(d.getDate() - i);
-      categories.push(d.toLocaleDateString('es-CO', dateOpts));
-      current = current * (1 + (Math.random() * 0.022 - 0.006));
-      if (i === 0) current = base;
-      values.push(Math.round(current));
-    }
-
-    this.portfolioSeries = [{ name: 'Valor portafolio', data: values, color: '#4aaa60' }];
-    this.portfolioXAxis = { ...this.portfolioXAxis, categories };
-  }
-
   private buildDonutChart(positions: PortfolioPositionsResponse | null): void {
     const pos = positions?.positions ?? [];
     if (pos.length === 0) {
@@ -269,28 +245,33 @@ export class DashboardComponent implements OnInit {
 
   private buildSparklines(): void {
     const items = this.watchlistSvc.getWatchlist().slice(0, 6);
-    const rows: SparklineRow[] = items.map(item => {
-      const base = 10000 + Math.random() * 90000;
-      const data: number[] = [];
-      let v = base;
-      for (let i = 0; i < 20; i++) {
-        v = v * (1 + (Math.random() * 0.04 - 0.015));
-        data.push(Math.round(v));
-      }
-      const change = ((data[data.length - 1] - data[0]) / data[0]) * 100;
-      return {
-        item,
-        detail: {
-          symbol: item.symbol,
-          name: item.name,
-          currentPrice: data[data.length - 1],
-          dayChangePct: parseFloat(change.toFixed(2)),
-          volume: Math.round(Math.random() * 1_000_000),
-        },
-        chartSeries: [{ data }],
-      };
+    if (items.length === 0) return;
+
+    const requests = items.map(item =>
+      forkJoin({
+        detail: this.marketSvc.getStock(item.symbol).pipe(catchError(() => of(null))),
+        intraday: this.marketSvc.getIntraday(item.symbol).pipe(catchError(() => of(null))),
+      })
+    );
+
+    forkJoin(requests).subscribe(results => {
+      const rows: SparklineRow[] = items.map((item, i) => {
+        const detail = results[i].detail as StockSummary | null;
+        const intraday = results[i].intraday as { points: { price: number }[] } | null;
+
+        let chartData: number[];
+        if (intraday && intraday.points.length > 1) {
+          chartData = intraday.points.map(p => Math.round(Number(p.price)));
+        } else if (detail) {
+          chartData = Array(10).fill(Math.round(detail.currentPrice));
+        } else {
+          chartData = [];
+        }
+
+        return { item, detail, chartSeries: [{ data: chartData }] };
+      });
+      this.sparklines.set(rows);
     });
-    this.sparklines.set(rows);
   }
 
   sparkColor(row: SparklineRow): string {
