@@ -87,8 +87,11 @@
               <tr>
                 <th>ID</th>
                 <th>Tipo de Evento</th>
-                <th>ID Inversor</th>
-                <th>Descripción</th>
+                <th>Inversor</th>
+                <th>Realizado por</th>
+                <th>Detalle</th>
+                <th>Referencia</th>
+                <th>IP</th>
                 <th>Resultado</th>
                 <th>Fecha y Hora</th>
               </tr>
@@ -99,9 +102,17 @@
                   <td class="text-muted">#{{ event.id }}</td>
                   <td><strong>{{ event.eventType }}</strong></td>
                   <td class="text-muted">{{ event.investorId ?? '—' }}</td>
-                  <td class="text-truncate" style="max-width: 300px;" [title]="event.description">
-                    {{ event.description }}
+                  <td class="text-muted">{{ event.performedBy ?? '—' }}</td>
+                  <td class="text-truncate" style="max-width: 280px;" [title]="event.detail ?? ''">
+                    {{ event.detail || '—' }}
                   </td>
+                  <td class="text-muted text-nowrap">
+                    @if (event.referenceType) {
+                      <span>{{ event.referenceType }}</span>
+                      @if (event.referenceId) { <span class="text-muted"> #{{ event.referenceId }}</span> }
+                    } @else { — }
+                  </td>
+                  <td class="text-muted text-nowrap">{{ event.ipAddress || '—' }}</td>
                   <td>
                     @switch (event.result) {
                       @case ('SUCCESS') { <span class="badge-green">{{ event.result }}</span> }

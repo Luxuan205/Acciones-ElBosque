@@ -447,8 +447,12 @@ export interface AuditEventDto {
   id: number;
   eventType: string;
   investorId?: number;
-  description: string;
+  performedBy?: number;
+  referenceType?: string;
+  referenceId?: number;
+  detail?: string;
   result: string;
+  ipAddress?: string;
   occurredAt: string;
 }
 
