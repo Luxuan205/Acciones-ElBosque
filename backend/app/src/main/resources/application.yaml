@@ -56,10 +56,10 @@ app:
     resend-window-minutes: ${APP_LOGIN_RESEND_WINDOW_MINUTES:5}
   market:
     yahoo-finance:
-      base-url: https://query1.finance.yahoo.com
+      base-url: https://query2.finance.yahoo.com
       refresh-interval-ms: 1800000
       symbol-mapping:
-        PFBCOLOM:  PFBCOLOM.CL
+        GEB:       GEB.CL
         NUTRESA:   NUTRESA.CL
         ISA:       ISA.CL
         ECOPETROL: ECOPETROL.CL
@@ -68,7 +68,7 @@ app:
         EXITO:     EXITO.CL
         ETB:       ETB.CL
         PFDAVVNDA: PFDAVVNDA.CL
-        CLH:       CLH.CL
+        CORFICOLCF: CORFICOLCF.CL
 
 management:
   endpoints:

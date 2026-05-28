@@ -40,7 +40,7 @@ class RealPriceRefresherTest {
 
     private static final Map<String, String> MAPPING = Map.of(
             "ECOPETROL", "ECOPETROL.CL",
-            "PFBCOLOM",  "PFBCOLOM.CL"
+            "GEB",       "GEB.CL"
     );
 
     @BeforeEach
@@ -53,25 +53,25 @@ class RealPriceRefresherTest {
     void refresh_success_updatesSnapshotAndSavesIntradayPoint() {
         MarketQuote quote = new MarketQuote(
                 "ECOPETROL.CL",
-                new BigDecimal("1950.00"),
-                new BigDecimal("1930.00"),
-                new BigDecimal("20.00"),
-                new BigDecimal("1.0363"),
-                5_000_000L
+                new BigDecimal("2715.00"),
+                new BigDecimal("2730.00"),
+                new BigDecimal("-15.00"),
+                new BigDecimal("-0.5495"),
+                36_000_000L
         );
         StockSnapshot snap = new StockSnapshot();
         snap.setSymbol("ECOPETROL");
-        snap.setCurrentPrice(new BigDecimal("1930.00"));
+        snap.setCurrentPrice(new BigDecimal("2730.00"));
 
         when(yahooClient.fetchQuotes(anyCollection())).thenReturn(List.of(quote));
         when(snapshotRepository.findBySymbol("ECOPETROL")).thenReturn(Optional.of(snap));
 
         refresher.refresh();
 
-        assertThat(snap.getCurrentPrice()).isEqualByComparingTo("1950.00");
-        assertThat(snap.getDayChange()).isEqualByComparingTo("20.00");
-        assertThat(snap.getDayChangePct()).isEqualByComparingTo("1.0363");
-        assertThat(snap.getVolume()).isEqualTo(5_000_000L);
+        assertThat(snap.getCurrentPrice()).isEqualByComparingTo("2715.00");
+        assertThat(snap.getDayChange()).isEqualByComparingTo("-15.00");
+        assertThat(snap.getDayChangePct()).isEqualByComparingTo("-0.5495");
+        assertThat(snap.getVolume()).isEqualTo(36_000_000L);
         verify(snapshotRepository).save(snap);
         verify(intradayRepository).saveAndFlush(any(IntradayPricePoint.class));
     }
@@ -88,7 +88,7 @@ class RealPriceRefresherTest {
     }
 
     @Test
-    void refresh_yahooSymbolNotInReverseMap_skipsWithoutError() {
+    void refresh_symbolNotInReverseMap_skipsWithoutError() {
         MarketQuote unknown = new MarketQuote(
                 "UNKNOWN.CL",
                 new BigDecimal("100.00"),
@@ -106,11 +106,9 @@ class RealPriceRefresherTest {
 
     @Test
     void refresh_marketTransitionsToClosed_purgesIntradayData() {
-        // First call: market open
         when(yahooClient.fetchQuotes(anyCollection())).thenReturn(List.of());
         refresher.refresh();
 
-        // Second call: market now closed
         when(marketStatusService.isMarketOpen()).thenReturn(false);
         refresher.refresh();
 

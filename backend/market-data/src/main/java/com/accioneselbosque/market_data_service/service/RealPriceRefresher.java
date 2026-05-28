@@ -86,8 +86,8 @@ public class RealPriceRefresher {
             StockSnapshot snap = snapOpt.get();
             snap.setCurrentPrice(quote.price());
             if (quote.previousClose() != null) snap.setPreviousClose(quote.previousClose());
-            snap.setDayChange(quote.change());
-            snap.setDayChangePct(quote.changePct());
+            if (quote.change() != null) snap.setDayChange(quote.change());
+            if (quote.changePct() != null) snap.setDayChangePct(quote.changePct());
             snap.setVolume(quote.volume());
             snapshotRepository.save(snap);
 
