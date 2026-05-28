@@ -23,7 +23,7 @@ import { WatchlistService } from '../../core/services/watchlist.service';
 import { MarketService } from '../../core/services/market.service';
 import {
   BalanceSummaryResponse, ProfileResponse, Order,
-  PortfolioPositionsResponse, StockSummary, WatchlistItem,
+  PortfolioPositionsResponse, StockSummary, StockDetail, WatchlistItem,
   PortfolioHistoryResponse
 } from '../../core/models';
 import { forkJoin, of } from 'rxjs';
@@ -256,14 +256,16 @@ export class DashboardComponent implements OnInit {
 
     forkJoin(requests).subscribe(results => {
       const rows: SparklineRow[] = items.map((item, i) => {
-        const detail = results[i].detail as StockSummary | null;
+        const detail = results[i].detail as StockDetail | null;
         const intraday = results[i].intraday as { points: { price: number }[] } | null;
 
         let chartData: number[];
         if (intraday && intraday.points.length > 1) {
           chartData = intraday.points.map(p => Math.round(Number(p.price)));
+        } else if (detail?.previousClose && detail.previousClose !== detail.currentPrice) {
+          chartData = [Math.round(detail.previousClose), Math.round(detail.currentPrice)];
         } else if (detail) {
-          chartData = Array(10).fill(Math.round(detail.currentPrice));
+          chartData = [Math.round(detail.currentPrice)];
         } else {
           chartData = [];
         }
