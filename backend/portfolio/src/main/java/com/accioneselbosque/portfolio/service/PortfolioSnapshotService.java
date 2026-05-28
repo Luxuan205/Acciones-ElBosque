@@ -9,7 +9,10 @@ import com.accioneselbosque.portfolio.repository.PortfolioSnapshotRepository;
 import com.accioneselbosque.portfolio.repository.PositionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
@@ -26,46 +29,61 @@ public class PortfolioSnapshotService {
     private final AccountBalanceRepository accountBalanceRepository;
     private final StockSnapshotService stockSnapshotService;
 
+    @Autowired
+    @Lazy
+    private PortfolioSnapshotService self;
+
     @Transactional
     public void takeSnapshot() {
-        List<Long> investorIds = positionRepository.findDistinctInvestorIds();
+        List<Long> investorIds = accountBalanceRepository.findAll().stream()
+                .map(b -> b.getInvestorId())
+                .toList();
         LocalDate today = LocalDate.now();
         log.info("PortfolioSnapshotService: taking snapshot for {} investors", investorIds.size());
 
         for (Long investorId : investorIds) {
-            BigDecimal positionsValue = positionRepository.findByInvestorId(investorId).stream()
-                    .map(p -> {
-                        BigDecimal price = stockSnapshotService.findBySymbol(p.getSymbol())
-                                .map(s -> s.getCurrentPrice())
-                                .orElse(p.getAvgPurchasePrice());
-                        return price.multiply(BigDecimal.valueOf(p.getCurrentQuantity()));
-                    })
-                    .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-            BigDecimal cash = accountBalanceRepository.findByInvestorId(investorId)
-                    .map(b -> b.getTotalBalance())
-                    .orElse(BigDecimal.ZERO);
-
-            BigDecimal totalValue = cash.add(positionsValue);
-
-            PortfolioSnapshot snapshot = snapshotRepository
-                    .findByInvestorIdAndSnapshotDate(investorId, today)
-                    .orElseGet(() -> PortfolioSnapshot.builder()
-                            .investorId(investorId)
-                            .snapshotDate(today)
-                            .build());
-            snapshot.setTotalValue(totalValue);
-            snapshotRepository.save(snapshot);
+            try {
+                self.saveSnapshotForInvestor(investorId, today);
+            } catch (Exception e) {
+                log.warn("PortfolioSnapshotService: failed snapshot for investor {}: {}", investorId, e.getMessage());
+            }
         }
         log.info("PortfolioSnapshotService: snapshot complete");
+    }
+
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveSnapshotForInvestor(Long investorId, LocalDate today) {
+        BigDecimal positionsValue = positionRepository.findByInvestorId(investorId).stream()
+                .map(p -> {
+                    BigDecimal price = stockSnapshotService.findBySymbol(p.getSymbol())
+                            .map(s -> s.getCurrentPrice())
+                            .orElse(p.getAvgPurchasePrice());
+                    return price.multiply(BigDecimal.valueOf(p.getCurrentQuantity()));
+                })
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal cash = accountBalanceRepository.findByInvestorId(investorId)
+                .map(b -> b.getTotalBalance())
+                .orElse(BigDecimal.ZERO);
+
+        BigDecimal totalValue = cash.add(positionsValue);
+
+        PortfolioSnapshot snapshot = snapshotRepository
+                .findByInvestorIdAndSnapshotDate(investorId, today)
+                .orElseGet(() -> PortfolioSnapshot.builder()
+                        .investorId(investorId)
+                        .snapshotDate(today)
+                        .build());
+        snapshot.setTotalValue(totalValue);
+        snapshotRepository.save(snapshot);
     }
 
     @Transactional(readOnly = true)
     public PortfolioHistoryResponse getHistory(Long investorId, String period) {
         LocalDate from = switch (period) {
             case "7D" -> LocalDate.now().minusDays(7);
-            case "3M" -> LocalDate.now().minusDays(90);
-            case "1A" -> LocalDate.now().minusDays(365);
+            case "3M" -> LocalDate.now().minusMonths(3);
+            case "1A" -> LocalDate.now().minusYears(1);
             default   -> LocalDate.now().minusDays(30);
         };
 
