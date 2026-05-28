@@ -1,10 +1,12 @@
 package com.accioneselbosque.portfolio.controller;
 
+import com.accioneselbosque.portfolio.dto.PortfolioHistoryResponse;
 import com.accioneselbosque.portfolio.dto.PortfolioPositionsResponse;
 import com.accioneselbosque.portfolio.dto.PortfolioReportDto;
 import com.accioneselbosque.portfolio.model.ReportPeriod;
 import com.accioneselbosque.portfolio.service.CsvReportExporter;
 import com.accioneselbosque.portfolio.service.PortfolioService;
+import com.accioneselbosque.portfolio.service.PortfolioSnapshotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
@@ -25,11 +27,20 @@ public class PortfolioController {
 
     private final PortfolioService portfolioService;
     private final CsvReportExporter csvReportExporter;
+    private final PortfolioSnapshotService snapshotService;
 
     @GetMapping("/positions")
     public ResponseEntity<PortfolioPositionsResponse> getPositions(Authentication authentication) {
         Long investorId = Long.parseLong(authentication.getName());
         return ResponseEntity.ok(portfolioService.getPositions(investorId));
+    }
+
+    @GetMapping("/history")
+    public ResponseEntity<PortfolioHistoryResponse> getHistory(
+            @RequestParam(defaultValue = "30D") String period,
+            Authentication authentication) {
+        Long investorId = Long.parseLong(authentication.getName());
+        return ResponseEntity.ok(snapshotService.getHistory(investorId, period));
     }
 
     @GetMapping("/report")
