@@ -91,17 +91,23 @@
                 >{{ p.label }}</button>
               }
             </div>
-            <apx-chart
-              [series]="portfolioSeries"
-              [chart]="portfolioChart"
-              [stroke]="portfolioStroke"
-              [fill]="portfolioFill"
-              [xaxis]="portfolioXAxis"
-              [yaxis]="portfolioYAxis"
-              [grid]="portfolioGrid"
-              [tooltip]="portfolioTooltip"
-              [dataLabels]="{ enabled: false }">
-            </apx-chart>
+            @if (hasChartData()) {
+              <apx-chart
+                [series]="portfolioSeries"
+                [chart]="portfolioChart"
+                [stroke]="portfolioStroke"
+                [fill]="portfolioFill"
+                [xaxis]="portfolioXAxis"
+                [yaxis]="portfolioYAxis"
+                [grid]="portfolioGrid"
+                [tooltip]="portfolioTooltip"
+                [dataLabels]="{ enabled: false }">
+              </apx-chart>
+            } @else if (!loadingCharts()) {
+              <div class="chart-empty-state">
+                <p class="text-muted text-sm">El historial se genera a partir de esta noche.<br>Vuelve mañana para ver la evolución de tu portafolio.</p>
+              </div>
+            }
           </div>
           <blockquote class="almanac__quote serif">
             "El mercado es un dispositivo para transferir dinero de los impacientes a los pacientes."

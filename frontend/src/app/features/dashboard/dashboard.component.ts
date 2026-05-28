@@ -57,6 +57,7 @@ export class DashboardComponent implements OnInit {
   loadingOrders = signal(true);
   loadingProfile = signal(true);
   loadingCharts = signal(true);
+  hasChartData = signal(false);
 
   today = new Date();
 
@@ -190,17 +191,16 @@ export class DashboardComponent implements OnInit {
       this.balance.set(balance);
       this.positions.set(positions);
       this.loadingBalance.set(false);
-      this.buildPortfolioChart(balance);
       this.buildDonutChart(positions);
       this.portfolio.getPortfolioHistory('30D').pipe(
         catchError(() => of({ points: [] } as PortfolioHistoryResponse))
       ).subscribe(history => {
         if (history.points.length > 0) {
           this.buildPortfolioChartFromHistory(history);
+          this.hasChartData.set(true);
         }
-        // If empty, simulated chart from buildPortfolioChart() remains
+        this.loadingCharts.set(false);
       });
-      this.loadingCharts.set(false);
     });
 
     this.buildSparklines();
@@ -213,9 +213,9 @@ export class DashboardComponent implements OnInit {
     ).subscribe(history => {
       if (history.points.length > 0) {
         this.buildPortfolioChartFromHistory(history);
+        this.hasChartData.set(true);
       } else {
-        const days = this.periods.find(p => p.label === label)?.days ?? 30;
-        this.buildPortfolioChart(this.balance(), days);
+        this.hasChartData.set(false);
       }
     });
   }

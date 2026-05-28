@@ -1,3 +1,12 @@
+.chart-empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 220px;
+  text-align: center;
+  line-height: 1.6;
+}
+
 .almanac {
   padding: 0 0 4rem;
 
