@@ -13,7 +13,7 @@ public class PortfolioSnapshotScheduler {
     private final PortfolioSnapshotService snapshotService;
 
     // Runs daily at 11:00 PM UTC (6:00 PM COT, after market close)
-    @Scheduled(cron = "0 0 23 * * *")
+    @Scheduled(cron = "0 0 23 * * *", zone = "UTC")
     public void scheduleDailySnapshot() {
         log.info("PortfolioSnapshotScheduler: starting daily snapshot");
         snapshotService.takeSnapshot();
