@@ -221,9 +221,10 @@ export class DashboardComponent implements OnInit {
   }
 
   private buildPortfolioChartFromHistory(history: PortfolioHistoryResponse): void {
-    const categories = history.points.map(p =>
-      new Date(p.date).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' })
-    );
+    const categories = history.points.map(p => {
+      const [y, m, d] = p.date.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+    });
     const values = history.points.map(p => Math.round(p.totalValue));
     this.portfolioSeries = [{ name: 'Valor portafolio', data: values, color: '#4aaa60' }];
     this.portfolioXAxis = { ...this.portfolioXAxis, categories };
