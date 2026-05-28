@@ -470,3 +470,26 @@ export interface Page<T> {
   size: number;
   totalPages: number;
 }
+
+// ── Admin Transactions ────────────────────────────────────────
+export interface AdminTransactionDto {
+  id: number;
+  investorName: string;
+  investorEmail: string;
+  symbol: string;
+  type: 'BUY' | 'SELL';
+  quantity: number;
+  grossAmount: number;
+  commission: number;
+  executedAt: string;
+}
+
+export interface AdminTransactionFilterDto {
+  from?: string;
+  to?: string;
+  investorId?: number;
+  symbol?: string;
+  type?: string;
+  page?: number;
+  size?: number;
+}
