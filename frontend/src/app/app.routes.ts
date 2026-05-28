@@ -199,6 +199,13 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./features/admin/admin-audit/admin-audit.component').then(m => m.AdminAuditComponent)
   },
+  {
+    path: 'admin/transactions',
+    canActivate: [authGuard, adminGuard],
+    loadComponent: () =>
+      import('./features/admin/admin-transactions/admin-transactions.component')
+        .then(m => m.AdminTransactionsComponent)
+  },
 
   // ── Wildcard ─────────────────────────────────────────────────
   { path: '**', redirectTo: '/dashboard' }
