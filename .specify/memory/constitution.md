@@ -32,10 +32,6 @@ Templates requiring updates:
     no microservice-specific task types were mandatory
   - .specify/templates/commands/*.md ✅ — No command files present
 
-Follow-up TODOs:
-  - Clarify whether eureka-server and gateway are infrastructure sidecars
-    deployed alongside the monolith or are truly separate applications.
-    Current constitution treats them as infrastructure components.
 -->
 
 # Acciones-ElBosque Constitution
@@ -59,8 +55,6 @@ deployment unit.
   Only the module's public facade is accessible from the outside.
 - Each module MUST compile and its unit tests MUST pass independently
   (i.e., can be tested in isolation with mocked dependencies).
-- The `gateway` and `eureka-server` components are treated as infrastructure
-  sidecars, not as core application modules.
 
 **Rationale**: Modular cohesion gives the team the organizational benefits of
 bounded contexts without the operational overhead of distributed systems.
@@ -69,9 +63,8 @@ Clear module boundaries prevent the codebase from becoming an unstructured
 
 ### II. API Contract-First
 
-All externally-facing HTTP contracts (exposed through the gateway) and all
-cross-module Java interfaces MUST be defined before implementation begins on
-the consuming side.
+All externally-facing HTTP contracts and all cross-module Java interfaces
+MUST be defined before implementation begins on the consuming side.
 
 - New external endpoints MUST be documented in the feature's `contracts/`
   folder under `specs/[###-feature-name]/contracts/` before coding starts.
@@ -80,7 +73,6 @@ the consuming side.
 - Breaking changes to an existing external contract or cross-module interface
   MUST be flagged in the PR description and require explicit team
   acknowledgment before merging.
-- The gateway MUST remain the single entry point for all external traffic.
 
 **Rationale**: Contract-first prevents integration failures discovered only at
 demo time and makes parallel team development viable even within a monolith.
@@ -107,14 +99,14 @@ elevates that checklist item to a non-bypassable governance gate.
 Authentication and authorization are owned by the `auth` module and MUST NOT
 be duplicated in other modules.
 
-- All protected endpoints MUST validate JWT tokens through the gateway filter
-  or the shared `auth` module's Spring Security configuration — never with
-  ad-hoc string parsing inside a business module.
+- All protected endpoints MUST validate JWT tokens through the shared `auth`
+  module's Spring Security configuration — never with ad-hoc string parsing
+  inside a business module.
 - The `audit-compliance` module MUST capture every state-changing operation
   (order placement, account changes, subscription changes) as an immutable
   audit record, invoked via its public facade from the relevant business module.
 - No secrets, API keys, or passwords MUST be committed to the repository.
-  Use environment variables or Spring Cloud Config (`configuration-service`).
+  Use environment variables or the `configuration` module.
 - SonarCloud quality gates (configured in CI) MUST NOT be bypassed;
   a failing gate blocks the PR.
 
@@ -144,9 +136,7 @@ team and produce a clean, auditable git history for academic evaluation.
 
 - **Language**: Java 17 (LTS) — no newer language features unless Spring Boot
   dependency support is confirmed.
-- **Framework**: Spring Boot 3.x + Spring Cloud 2023.x. Spring Cloud components
-  (`gateway`, `configuration-service`) are used as infrastructure; they do NOT
-  imply a microservices deployment model.
+- **Framework**: Spring Boot 4.x.
 - **Build**: Maven multi-module project. Each bounded-context module is a Maven
   module within the parent POM. Gradle is not permitted without team consensus.
 - **Containerization**: Docker. A `docker-compose.yml` at the repository root
@@ -154,7 +144,7 @@ team and produce a clean, auditable git history for academic evaluation.
 - **CI/CD**: GitHub Actions. Pipelines MUST at minimum build and test the full
   application. SonarCloud integration is required.
 - **Module communication**: In-process Java calls only between business modules.
-  HTTP is reserved for external clients (via the gateway) and third-party APIs.
+  HTTP is reserved for external clients and third-party APIs.
 - **Email**: The `mailing` module is the single point for all outbound email;
   other modules MUST invoke it via its public facade, never send email directly.
 
